@@ -198,6 +198,75 @@ it; omitting is clearer. Required variables (`DJANGO_SECRET_KEY`, `ALLOWED_HOSTS
 `DATABASE_URL`) must never be empty — `prod.py` still refuses to boot without them.
 
 
+## Database connection — Supabase transaction pooler
+
+Production connects through the Supabase (Supavisor) pooler in **transaction mode, port
+6543**. Transaction mode is required rather than merely preferred: Vercel Functions are
+serverless and **IPv4-only**, and Supabase's direct connection is IPv6-only, so the direct
+port is unreachable from Vercel at all.
+
+Transaction pooling imposes two constraints, and both fail *late* — which is what makes
+them worth documenting.
+
+### 1. No prepared statements
+
+Supavisor in transaction mode does not support prepared statements. psycopg 3 prepares a
+statement automatically once it has executed it `prepare_threshold` times, and that
+threshold defaults to **5**. So an unconfigured deployment works, then fails on the fifth
+execution of a repeated query — a symptom that looks like anything but its cause.
+
+Supabase's documented psycopg setting is `prepare_threshold=None`. It is applied on both
+sides, because both connect:
+
+| Stack | Where | Configuration |
+|---|---|---|
+| FastAPI / SQLAlchemy | `api_service/db/session.py` | `connect_args={"prepare_threshold": None}` |
+| Django | `config/settings/base.py` | `DATABASES["default"]["OPTIONS"]["prepare_threshold"] = None` |
+
+SQLAlchemy's psycopg dialect forwards `connect_args` to `psycopg.Connection.connect()`, and
+Django merges `OPTIONS` into the same call — both verified against a live PostgreSQL, where
+the connection reports `prepare_threshold = None`.
+
+Statement preparation is not transaction handling. Transactions are untouched:
+`autocommit=False`, explicit transactions, no isolation change.
+
+### 2. No client-side pooling
+
+Supabase recommends `NullPool` for serverless and horizontally auto-scaling deployments,
+and that is what FastAPI now uses. The previous `pool_size=5, max_overflow=10` was a
+`QueuePool` sized **per function instance** — up to 15 simultaneous connections in each
+instance, multiplied by however many instances Vercel runs at that moment. Supavisor
+already pools server-side, so a second client-side pool adds no benefit and spends a shared
+connection budget.
+
+`pool_pre_ping=True` is kept: with `NullPool` a connection may have been closed upstream,
+and pre-ping turns that into a reconnect instead of an error.
+
+Django uses `CONN_MAX_AGE = 60` in production and the default `0` in development — 0 so
+schema changes are picked up immediately while developing, 60 so production does not redo a
+TLS and auth handshake on every request.
+
+`CONN_MAX_AGE` is set in `config/settings/prod.py`, **not** `base.py`. `base.py` cannot
+decide it: its `DEBUG` reflects `.env`, and `prod.py` overrides `DEBUG` only after `base`
+has run, so an `if not DEBUG` branch there is a silent no-op.
+
+### Verifying the configuration
+
+```bash
+python -c "
+import os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings.dev'
+os.environ.setdefault('DJANGO_SECRET_KEY','x'*50)
+import django; django.setup()
+from django.db import connection
+connection.ensure_connection()
+print(connection.connection.prepare_threshold)   # expect: None
+"
+```
+
+`tests/test_db_pooler_config.py` asserts all of the above, including URL rewriting
+(credentials pass through byte-for-byte rather than being parsed and rebuilt), pooler
+detection by port, `NullPool` in use, and the absence of any `QueuePool` sizing.
+
 ## Media storage — the limitation that must be addressed
 
 **Vercel Functions have a read-only filesystem except `/tmp`, and `/tmp` is per-invocation

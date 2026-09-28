@@ -164,6 +164,30 @@ DATABASES = {
 }
 
 # --------------------------------------------------------------------------------------
+# PostgreSQL connection options -- Supabase transaction-pooler compatibility
+# --------------------------------------------------------------------------------------
+# Production connects through the Supabase (Supavisor) pooler in transaction mode
+# (port 6543), which does NOT support prepared statements. psycopg 3 prepares a statement
+# automatically once it has been executed `prepare_threshold` times (default 5), so
+# without this a query works in development and then fails in production on its fifth
+# execution -- a latent failure that is hard to attribute to its cause.
+#
+# Supabase's documented psycopg setting is `prepare_threshold=None`, and Django merges
+# DATABASES["default"]["OPTIONS"] into the psycopg connect call, so it belongs here.
+#
+# Applied unconditionally rather than only for port 6543: disabling prepared statements
+# costs a marginal amount of per-query planning and is correct for direct connections too,
+# so one configuration serves both and there is no branch that can be got wrong.
+# Transactions are untouched -- this affects statement preparation, not transaction
+# semantics.
+DATABASES["default"].setdefault("OPTIONS", {})["prepare_threshold"] = None
+
+# NOTE: CONN_MAX_AGE is deliberately NOT set here. `base` cannot know whether it is
+# loading for dev or prod -- DEBUG in this module reflects .env, and prod.py overrides it
+# only *after* this file has run -- so an `if not DEBUG` branch here would be a silent
+# no-op. The production reuse window is set in prod.py, where the intent is unambiguous.
+
+# --------------------------------------------------------------------------------------
 # Logging
 # --------------------------------------------------------------------------------------
 LOGGING = {

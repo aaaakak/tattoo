@@ -36,6 +36,15 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 X_FRAME_OPTIONS = "DENY"
 
+# --- Database connection reuse ---
+# The default of 0 opens a new connection per request. That is correct for development
+# (schema changes are picked up without stale connections) but wasteful in production.
+# A short reuse window is safe with Supavisor because the pooler owns the real pooling:
+# this only avoids re-doing the TLS + auth handshake on every request. Kept modest (60s)
+# so idle client connections are released promptly and cannot accumulate against the
+# pooler's connection budget.
+DATABASES["default"]["CONN_MAX_AGE"] = 60
+
 # --- Cache: database-backed, since Redis is deliberately absent ---
 CACHES = {
     "default": {

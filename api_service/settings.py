@@ -43,6 +43,14 @@ class Settings(BaseSettings):
         """
         SQLAlchemy 2 needs an explicit driver: Django's URL says `postgres://`, whereas
         SQLAlchemy requires `postgresql+psycopg://`.
+
+        The driver prefix is the only rewrite. Prepared-statement and timezone handling
+        are configured as engine kwargs and connect args (see api_service/db/session.py)
+        rather than by appending query parameters here, so the URL stays exactly what the
+        operator supplied and no credentials or host details are ever reconstructed in
+        code. Supabase's transaction pooler requires prepared statements off; that is
+        enforced via `connect_args={"prepare_threshold": None}`, which SQLAlchemy passes
+        through to psycopg.
         """
         url = self.database_url
         if url.startswith("postgres://"):
@@ -50,6 +58,23 @@ class Settings(BaseSettings):
         elif url.startswith("postgresql://") and "+psycopg" not in url:
             url = "postgresql+psycopg://" + url[len("postgresql://"):]
         return url
+
+    @property
+    def is_transaction_pooler(self) -> bool:
+        """
+        True when the configured URL points at a Supabase transaction pooler (port 6543).
+
+        Detection is by port only -- never by hostname, which varies per project and
+        region. Used by tests and diagnostics to assert the pooler-compatible path is
+        active; it intentionally has no effect on engine construction beyond informing
+        the single configuration that is safe for both pooled and direct connections.
+        """
+        from urllib.parse import urlparse
+
+        try:
+            return urlparse(self.sqlalchemy_url).port == 6543
+        except ValueError:
+            return False
 
 
 @lru_cache
