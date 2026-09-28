@@ -237,10 +237,16 @@ media/         uploads (gitignored)
 | `docs/components.md` | Component contracts and their source references |
 | `docs/pages.md` | Page-by-page hierarchy and CMS sources |
 | `docs/implementation-plan.md` | The 12 phases and their verification gates |
+| `docs/deployment.md` | Vercel Services architecture, routing, env vars, media limits |
 
 ---
 
 ## Deployment notes
+
+Deployed as **two Vercel Services in one project** (Django + FastAPI, one domain).
+See `docs/deployment.md` for the architecture, the routing table, the required
+environment variables, and the media-storage limitation. The local two-process
+description below is still how development runs.
 
 - Two processes behind one reverse proxy: `/api/v1/*` → FastAPI, everything else → Django.
   One public origin, which is why CORS is a dev-only concern.

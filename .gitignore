@@ -32,3 +32,8 @@ Thumbs.db
 
 # Hermes agent working state (plans, scratch) -- not project source
 .hermes/
+
+# Vercel CLI local state (project link, pulled env) -- never commit.
+# NOTE: .vercelignore is intentionally NOT ignored -- it is real deployment config.
+.vercel/
+.env.local
