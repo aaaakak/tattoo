@@ -80,16 +80,63 @@ single top-level value and cannot describe two services. Per-service entrypoints
 python manage.py collectstatic --noinput --settings=config.settings.build
 ```
 
-`config.settings.build` exists because the build must satisfy two constraints that no other
-settings module can:
+### Vercel runs collectstatic twice, and that is expected
+
+The Django framework preset performs its **own** automatic `collectstatic` after the
+service's `buildCommand`. Its invocation is bare:
+
+```
+.vercel/python/services/web/.venv/bin/python manage.py collectstatic --noinput
+```
+
+No `--settings`, so it resolves `DJANGO_SETTINGS_MODULE` through `manage.py`, which defaults
+to `config.settings.dev`.
+
+This caused two separate problems, both fixed:
+
+**1. The automatic run crashed.** `dev.py` used to install `debug_toolbar`
+unconditionally, but `django-debug-toolbar` is a dev-group dependency and is absent from
+Vercel's production install:
+
+```
+ModuleNotFoundError: No module named 'debug_toolbar'
+```
+
+`dev.py` now attaches the toolbar only when the package is actually importable
+(`importlib.util.find_spec`, wrapped in `try/except` because `find_spec` propagates an
+`ImportError` when an import hook raises one). Development is unchanged for anyone with the
+dev group installed; the module is simply no longer unimportable without it. Adding
+`django-debug-toolbar` to production dependencies would have been the wrong fix — a
+development tool does not belong in a production install.
+
+**2. The build produced no staticfiles manifest.** This was latent and would have shipped
+a broken site on the first *successful* build. Production serves with
+`ManifestStaticFilesStorage`, so `{% static %}` resolves filenames through
+`staticfiles.json`. A build using plain `StaticFilesStorage` produces no such manifest
+(Django only writes it for manifest storage, and only `prod` and `build` use it), so every
+asset URL fails at runtime:
+
+```
+ValueError: Missing staticfiles manifest entry for 'css/base.css'
+```
+
+A healthy-looking deployment serving unstyled pages is worse than a failed build.
+`config.settings.build` now uses `ManifestStaticFilesStorage` so the manifest the
+production settings expect is actually generated.
+
+The two runs are harmless in either order: `collectstatic` never deletes, it only copies, so
+the hashed files and `staticfiles.json` written by the build step survive the automatic run.
+Verified by running build-then-dev collection and confirming the manifest persists.
+
+### Why config.settings.build exists
+
+It must satisfy two constraints that no other settings module can:
 
 - It must not require a secret. `prod.py` correctly raises `ImproperlyConfigured` without
   `DJANGO_SECRET_KEY` — right for a server, fatal for a build.
-- It must not import a dev-only package. `dev.py` adds `debug_toolbar`, and
-  `django-debug-toolbar` is a dev-group dependency that must not be installed in a
-  production build.
+- It must not depend on a dev-only package, so `dev` is not a safe build target.
 
-`config.settings.build` inherits `base`, keeps `DEBUG` off, and is used only to collect
+It inherits `base`, keeps `DEBUG` off, requires no secret, and is used only to collect
 static files. It never serves anything: the entrypoint Vercel loads resolves to
 `config.settings.prod`, which still hard-fails on a missing secret. Verify with:
 
