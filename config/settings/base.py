@@ -5,6 +5,7 @@ Everything environment-specific lives in the leaf modules (dev.py / test.py / pr
 prod.py hard-fails on a missing secret key. See docs/architecture.md section 6.
 """
 
+import os
 from pathlib import Path
 
 import environ
@@ -17,14 +18,60 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / ".env")
 
+
+# --------------------------------------------------------------------------------------
+# Empty-means-unset handling
+# --------------------------------------------------------------------------------------
+# Hosting platforms routinely define an environment variable as an empty string rather
+# than omitting it. django-environ reads an empty variable as *present*, so the declared
+# default is skipped -- which fails in three different ways:
+#
+#   env.int("X", default=12)    with X=""  raises ValueError, crashing the settings import
+#   env.bool("X", default=True) with X=""  returns False -- silently disabling a security
+#                                          setting such as SECURE_SSL_REDIRECT
+#   env.list("X", default=[...]) with X="" returns [] -- silently losing the default
+#
+# So an empty (or whitespace-only) value is treated as "not supplied" before the typed
+# read happens, and the declared default applies. A value that is actually provided still
+# wins. This is deliberately narrow: only the named variable is touched, and only when it
+# is empty.
+
+def env_int(name: str, default: int) -> int:
+    """Typed read where an empty value means 'not supplied' and the default applies."""
+    if os.environ.get(name, "").strip() == "":
+        os.environ.pop(name, None)
+    return env.int(name, default=default)
+
+
+def env_bool(name: str, default: bool) -> bool:
+    """Boolean read with the same empty-means-unset rule, so a default of True survives."""
+    if os.environ.get(name, "").strip() == "":
+        os.environ.pop(name, None)
+    return env.bool(name, default=default)
+
+
+def env_str(name: str, default: str) -> str:
+    """String read with the same rule, so an empty value does not blank a default."""
+    if os.environ.get(name, "").strip() == "":
+        os.environ.pop(name, None)
+    return env(name, default=default)
+
+
+def env_list(name: str, default: list[str]) -> list[str]:
+    """List read with the same rule, so an empty value does not discard the default."""
+    if os.environ.get(name, "").strip() == "":
+        os.environ.pop(name, None)
+    return env.list(name, default=default)
+
+
 # --------------------------------------------------------------------------------------
 # Core
 # --------------------------------------------------------------------------------------
 SECRET_KEY=env('DJANGO_SECRET_KEY', default="dev-only-insecure-key-change-me")
-DEBUG = env.bool("DEBUG", default=False)
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
+DEBUG = env_bool("DEBUG", default=False)
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
-SITE_NAME = env("SITE_NAME", default="TattoWeb")
+SITE_NAME = env_str("SITE_NAME", default="TattoWeb")
 
 # --------------------------------------------------------------------------------------
 # Applications
@@ -150,10 +197,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # no effect -- which produces phantom bugs that look like logic errors. Production uses
 # ManifestStaticFilesStorage (content hashes) instead; this covers DEBUG where manifests
 # are not generated.
-STATIC_VERSION = env("STATIC_VERSION", default="dev1")
+STATIC_VERSION = env_str("STATIC_VERSION", default="dev1")
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = env("MEDIA_ROOT", default=str(BASE_DIR / "media"))
+MEDIA_ROOT = env_str("MEDIA_ROOT", default=str(BASE_DIR / "media"))
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
@@ -163,7 +210,7 @@ STORAGES = {
 }
 
 # Upload cap, enforced server-side. See docs/architecture.md section 8.
-IMAGE_MAX_UPLOAD_MB = env.int("IMAGE_MAX_UPLOAD_MB", default=12)
+IMAGE_MAX_UPLOAD_MB = env_int("IMAGE_MAX_UPLOAD_MB", default=12)
 
 # --------------------------------------------------------------------------------------
 # Authentication
@@ -183,7 +230,7 @@ LOGOUT_REDIRECT_URL = "core:home"
 # Internationalisation
 # --------------------------------------------------------------------------------------
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = env("SITE_TIMEZONE", default="Europe/Berlin")
+TIME_ZONE = env_str("SITE_TIMEZONE", default="Europe/Berlin")
 USE_I18N = True
 USE_TZ = True   # all datetimes tz-aware in Postgres -- required by the availability engine
 
@@ -191,13 +238,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --------------------------------------------------------------------------------------
 # Email (optional -- booking notifications log instead when unset)
+# EMAIL_HOST / EMAIL_HOST_USER / EMAIL_HOST_PASSWORD intentionally use a raw
+# env() read: their default *is* the empty string, so treating empty as
+# "not supplied" would change nothing and the plain read is clearer.
 # --------------------------------------------------------------------------------------
 EMAIL_HOST = env("EMAIL_HOST", default="")
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_PORT = env_int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-default_from = env("DEFAULT_FROM_EMAIL", default="studio@example.com")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", default=True)
+default_from = env_str("DEFAULT_FROM_EMAIL", default="studio@example.com")
 DEFAULT_FROM_EMAIL = default_from
 SERVER_EMAIL = default_from
 
@@ -228,10 +278,10 @@ REST_FRAMEWORK = {
 # Cross-layer integration
 # --------------------------------------------------------------------------------------
 # Internal visual-system reference page. Defaults to DEBUG; force off in production.
-DESIGN_SYSTEM_ENABLED = env.bool("DESIGN_SYSTEM_ENABLED", default=DEBUG)
+DESIGN_SYSTEM_ENABLED = env_bool("DESIGN_SYSTEM_ENABLED", default=DEBUG)
 
-FASTAPI_BASE_URL = env("FASTAPI_BASE_URL", default="http://127.0.0.1:8001")
-CORS_ALLOWED_ORIGINS = env.list(
+FASTAPI_BASE_URL = env_str("FASTAPI_BASE_URL", default="http://127.0.0.1:8001")
+CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS",
     default=["http://127.0.0.1:8000", "http://localhost:8000"],
 )
@@ -239,5 +289,5 @@ CORS_ALLOWED_ORIGINS = env.list(
 # --------------------------------------------------------------------------------------
 # Rate limiting (django-ratelimit) -- booking and contact are the abuse surfaces
 # --------------------------------------------------------------------------------------
-RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)
+RATELIMIT_ENABLE = env_bool("RATELIMIT_ENABLE", default=True)
 RATELIMIT_USE_CACHE = "default"

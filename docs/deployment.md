@@ -119,6 +119,38 @@ Both services receive all project variables, so one value each covers both.
 
 Never commit a real value. `.env`, `.env.local` and `.vercel/` are gitignored.
 
+### Optional variables must not be defined as empty strings
+
+A hosting platform may create a variable with an **empty value** rather than omitting it.
+Vercel did exactly this with `IMAGE_MAX_UPLOAD_MB`, and the first deployment failed with:
+
+```
+File config/settings/base.py:
+    IMAGE_MAX_UPLOAD_MB = env.int("IMAGE_MAX_UPLOAD_MB", default=12)
+ValueError: invalid literal for int() with base 10: ''
+```
+
+`django-environ` treats an empty variable as *present*, so the declared default is skipped
+and `int("")` is evaluated. Historically that failed in three separate ways:
+
+| Call shape | With an empty value | Consequence |
+|---|---|---|
+| `env.int(..., default=12)` | raises `ValueError` | **the settings import crashes** |
+| `env.bool(..., default=True)` | returns `False` | **silently disables a security setting** |
+| `env.list(..., default=[...])` | returns `[]` | silently discards the default |
+
+`config/settings/base.py` now wraps every typed read in `env_int` / `env_bool` / `env_str` /
+`env_list`, which treat an empty or whitespace-only value as **"not supplied"** so the
+declared default applies. A value that is actually provided still wins, and a genuinely
+malformed value (e.g. `IMAGE_MAX_UPLOAD_MB=abc`) still fails loudly rather than being
+quietly replaced — empty is ambiguous, garbage is a mistake.
+
+**The correct configuration is to omit optional variables entirely.** If a variable must
+exist in the dashboard, leave its value genuinely empty only because the code now tolerates
+it; omitting is clearer. Required variables (`DJANGO_SECRET_KEY`, `ALLOWED_HOSTS`,
+`DATABASE_URL`) must never be empty — `prod.py` still refuses to boot without them.
+
+
 ## Media storage — the limitation that must be addressed
 
 **Vercel Functions have a read-only filesystem except `/tmp`, and `/tmp` is per-invocation
