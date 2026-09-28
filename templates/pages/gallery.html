@@ -1,0 +1,68 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// ARCHIVE</span><span class="meta__sep"> — </span><span class="meta__label">GALLERY</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+
+    <h1 class="display display--l" style="margin-bottom: var(--space-5)">GALLERY</h1>
+
+    {% if collections %}
+      <nav class="filter-rail" aria-label="Filter by collection">
+        <a class="chip{% if not active_filters.collection %} chip--active{% endif %}" href="{% url 'gallery:index' %}">ALL</a>
+        {% for c in collections %}
+          <a class="chip{% if active_filters.collection == c.slug %} chip--active{% endif %}"
+             href="?collection={{ c.slug }}">{{ c.title }}</a>
+        {% endfor %}
+        <a class="chip{% if active_filters.featured == '1' %} chip--active{% endif %}" href="?featured=1">FEATURED</a>
+      </nav>
+    {% endif %}
+
+    {% if images %}
+      {# Authored curation takes precedence over the featured-work fallback. #}
+      <div class="masonry">
+        {% for gi in images %}
+          <figure class="masonry__item" style="--span: {{ gi.span }}">
+            {% dither_image gi.asset alt=gi.caption sizes="(max-width:768px) 100vw, 33vw" %}
+            {% if gi.caption %}<figcaption class="meta">{{ gi.caption }}</figcaption>{% endif %}
+          </figure>
+        {% endfor %}
+      </div>
+      {% include "components/pagination.html" %}
+    {% else %}
+      <div class="masonry">
+        {% for tattoo in featured_tattoos %}
+          {% with primary=tattoo.primary_image %}
+            {% if primary %}
+              <figure class="masonry__item">
+                <a href="{{ tattoo.get_absolute_url }}">
+                  {% dither_image primary.asset alt=tattoo.title sizes="(max-width:768px) 100vw, 33vw" placeholder=tattoo.is_placeholder %}
+                </a>
+                <figcaption class="meta">{{ tattoo.title }}</figcaption>
+              </figure>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+        {% for artwork in featured_artworks %}
+          {% with primary=artwork.primary_image %}
+            {% if primary %}
+              <figure class="masonry__item">
+                <a href="{{ artwork.get_absolute_url }}">
+                  {% dither_image primary.asset alt=artwork.title sizes="(max-width:768px) 100vw, 33vw" placeholder=artwork.is_placeholder %}
+                </a>
+                <figcaption class="meta">{{ artwork.title }}</figcaption>
+              </figure>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+      </div>
+
+      {% if not featured_tattoos and not featured_artworks %}
+        {% include "components/empty_state.html" with marker="// 000 — GALLERY EMPTY" message="Nothing published yet. Curated collections can be authored from the admin, or publish portfolio work and it appears here." only %}
+      {% endif %}
+    {% endif %}
+  </section>
+
+  {% include "components/lightbox.html" with uid="gallery" items=lightbox_items only %}
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// ARTIST</span><span class="meta__sep"> — </span><span class="meta__label">ABOUT</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+
+    <h1 class="display display--l" style="margin-bottom: var(--space-5)">{{ artist.statement|default:"INK IS ONLY THE MEDIUM." }}</h1>
+
+    <div class="split">
+      <div class="split__aside">
+        {% if artist.portrait %}
+          {% dither_image artist.portrait alt=artist.display_name %}
+        {% endif %}
+
+        <dl class="meta-list" style="margin-top: var(--space-4)">
+          <dt>NAME</dt><dd>{{ artist.display_name|default:"—" }}</dd>
+          {% if artist.location %}<dt>LOCATION</dt><dd>{{ artist.location }}</dd>{% endif %}
+          {% if artist.years_experience %}<dt>EXPERIENCE</dt><dd>{{ artist.years_experience }} YEARS</dd>{% endif %}
+          {% if artist.email %}<dt>EMAIL</dt><dd><a href="mailto:{{ artist.email }}">{{ artist.email }}</a></dd>{% endif %}
+          {% if styles %}<dt>STYLES</dt><dd>{{ styles|length }}</dd>{% endif %}
+        </dl>
+
+        {% if social_links %}
+          <dl class="meta-list" style="margin-top: var(--space-4)">
+            <dt>ELSEWHERE</dt>
+            <dd>
+              {% for link in social_links %}
+                {% if link.url %}<a href="{{ link.url }}" target="_blank" rel="me noopener">{{ link.label }}</a>{% else %}{{ link.label }}{% endif %}{% if not forloop.last %} · {% endif %}
+              {% endfor %}
+            </dd>
+          </dl>
+        {% endif %}
+      </div>
+
+      <div class="split__main">
+        <div class="body-prose">
+          {% for para in artist.biography_paragraphs %}
+            <p>{{ para }}</p>
+          {% empty %}
+            <p>The artist's biography is managed from the Django admin. This placeholder stands in until real text is entered; the layout is already final.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% if artist.statistics.all %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// PRACTICE</span><span class="meta__sep"> — </span><span class="meta__label">BY THE NUMBERS</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+    <div class="grid-4">
+      {% for stat in artist.statistics.all %}
+        <div class="stat">
+          <span class="stat__value">{{ stat.value }}</span>
+          <span class="stat__label">{{ stat.label }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if styles %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// SPECIALTIES</span><span class="meta__sep"> — </span><span class="meta__label">STYLES</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+    <nav class="filter-rail">
+      {% for style in styles %}
+        <a class="chip" href="{{ style.get_absolute_url }}">{{ style.name }}</a>
+      {% endfor %}
+    </nav>
+  </section>
+  {% endif %}
+{% endblock %}

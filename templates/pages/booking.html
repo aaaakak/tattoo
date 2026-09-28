@@ -1,0 +1,85 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// REQUEST</span><span class="meta__sep"> — </span><span class="meta__label">BOOK A SESSION</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+
+    <h1 class="display display--l" style="margin-bottom: var(--space-5)">BOOK A SESSION</h1>
+
+    {% if booking_closed %}
+      <div class="empty-state">
+        <p class="meta">// BOOKING CURRENTLY CLOSED</p>
+        <p class="body-prose">The studio is not taking new requests at the moment. Check back, or follow along on social media for openings.</p>
+      </div>
+    {% else %}
+
+    <div class="split">
+      <div class="split__aside">
+        <p class="body-prose">Describe the idea as precisely as you can. Reference images help more than words — an existing design you love, a sketch, or a photo of the placement.</p>
+        {% if next_days %}
+          <dl class="meta-list" style="margin-top: var(--space-4)">
+            <dt>NEXT AVAILABLE</dt>
+            <dd>{% for d in next_days %}{{ d|date:"j M" }}{% if not forloop.last %} · {% endif %}{% endfor %}</dd>
+          </dl>
+        {% endif %}
+      </div>
+
+      <div class="split__main">
+        {# Real multipart POST. Works with JavaScript disabled. #}
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="form-errors" role="alert">
+              {% for error in form.non_field_errors %}<p class="field__error">{{ error }}</p>{% endfor %}
+            </div>
+          {% endif %}
+
+          <fieldset class="form-fieldset">
+            <legend class="meta">// 01 — YOU</legend>
+            {% for field in form %}
+              {% if field.name == "name" or field.name == "email" or field.name == "phone" or field.name == "instagram" or field.name == "telegram" %}
+                {% include "components/field.html" with field=field only %}
+              {% endif %}
+            {% endfor %}
+          </fieldset>
+
+          <fieldset class="form-fieldset">
+            <legend class="meta">// 02 — THE PIECE</legend>
+            {% for field in form %}
+              {% if field.name == "style" or field.name == "placement" or field.name == "approx_size" or field.name == "is_color" or field.name == "description" %}
+                {% include "components/field.html" with field=field only %}
+              {% endif %}
+            {% endfor %}
+          </fieldset>
+
+          <fieldset class="form-fieldset">
+            <legend class="meta">// 03 — REFERENCES</legend>
+            {% include "components/field.html" with field=form.references only %}
+          </fieldset>
+
+          <fieldset class="form-fieldset">
+            <legend class="meta">// 04 — TIMING &amp; BUDGET</legend>
+            {% include "components/field.html" with field=form.preferred_date availability_url=availability_url only %}
+            <p class="meta" data-availability-status>// CHECKING AVAILABILITY…</p>
+            {% include "components/field.html" with field=form.preferred_time only %}
+            {% include "components/field.html" with field=form.budget_min only %}
+            {% include "components/field.html" with field=form.budget_max only %}
+          </fieldset>
+
+          <fieldset class="form-fieldset">
+            <legend class="meta">// 05 — CONFIRM</legend>
+            {% include "components/field.html" with field=form.contact_consent only %}
+            <p class="honeypot" aria-hidden="true">{{ form.website }}</p>
+          </fieldset>
+
+          <button class="btn btn--primary" type="submit">SEND REQUEST</button>
+          <p class="meta" style="margin-top: var(--space-2)">You will receive a reference code. The studio replies by email.</p>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+{% endblock %}

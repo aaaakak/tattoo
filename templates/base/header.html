@@ -1,0 +1,29 @@
+{% comment %}
+Site header: monogram, mono navigation, one cobalt CTA.
+
+Glass is permitted on exactly two surfaces in this project — this header (once
+scrolled) and the lightbox. Every nav item is a real link, so navigation works with
+JS disabled.
+{% endcomment %}
+<header class="site-header" data-header>
+  <div class="container site-header__inner">
+
+    <a href="{% url 'core:home' %}" class="monogram" aria-label="{{ artist.display_name|default:'Home' }}">
+      {{ artist.monogram|default:"TW" }}
+    </a>
+
+    <nav class="site-nav" data-nav aria-label="Primary">
+      {% for item in nav_items %}
+        <a class="site-nav__link" href="{% url item.url_name %}">{{ item.label }}</a>
+      {% endfor %}
+      {% if booking_open %}
+        <a class="btn btn--primary" href="{% url 'booking:create' %}">BOOK</a>
+      {% endif %}
+    </nav>
+
+    <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="primary-nav">
+      MENU
+    </button>
+
+  </div>
+</header>

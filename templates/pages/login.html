@@ -1,0 +1,20 @@
+{% extends "base/base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+  <section class="section container">
+    <h1 class="display display--m" style="margin-bottom: var(--space-4)">SIGN IN</h1>
+    <form method="post" style="max-width: 420px">
+      {% csrf_token %}
+      <div class="field">
+        <label class="field__label" for="id_username">USERNAME</label>
+        <input class="field__input" type="text" name="username" id="id_username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label class="field__label" for="id_password">PASSWORD</label>
+        <input class="field__input" type="password" name="password" id="id_password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn--primary" type="submit">SIGN IN</button>
+    </form>
+    <p class="meta" style="margin-top: var(--space-4)"><a href="{% url 'core:home' %}">← BACK TO SITE</a></p>
+  </section>
+{% endblock %}

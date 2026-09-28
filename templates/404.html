@@ -1,0 +1,12 @@
+{% extends "base/base.html" %}
+{% block content %}
+<section class="section container" style="min-height: 60svh; display: flex; flex-direction: column; justify-content: center">
+  <p class="meta">// 404 — NOT FOUND</p>
+  <h1 class="display" style="margin: var(--space-3) 0">LOST IN THE INK</h1>
+  <p class="body-prose">That page does not exist. The work, however, does.</p>
+  <div style="margin-top: var(--space-4); display: flex; gap: var(--space-2); flex-wrap: wrap">
+    <a class="btn btn--ghost" href="{% url 'tattoos:list' %}">VIEW TATTOOS</a>
+    <a class="btn btn--ghost" href="{% url 'artworks:list' %}">VIEW ARTWORK</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <p class="meta" style="margin-bottom: var(--space-4)"><a href="{% url 'styles:index' %}">← ALL STYLES</a></p>
+
+    <div class="split">
+      <div class="split__aside">
+        <h1 class="display display--m">{{ style.name }}</h1>
+      </div>
+      <div class="split__main">
+        {% if style.description %}<div class="body-prose">{{ style.description|linebreaks }}</div>{% endif %}
+      </div>
+    </div>
+
+    {% if tattoos %}
+      <div class="section-marker detail-block">
+        <span class="meta"><span class="meta__index">// WORK</span><span class="meta__sep"> — </span><span class="meta__label">{{ tattoos|length }} PIECE{{ tattoos|length|pluralize|upper }}</span></span>
+        <span class="section-marker__rule"></span>
+      </div>
+      <div class="editorial-run">
+        {% for tattoo in tattoos %}
+          <a class="card" href="{{ tattoo.get_absolute_url }}">
+            <span class="card__hairline"></span>
+            {% with p=tattoo.primary_image %}
+              {% if p %}{% dither_image p.asset alt=tattoo.title sizes="(max-width:768px) 100vw, 33vw" placeholder=tattoo.is_placeholder %}{% endif %}
+            {% endwith %}
+            <div class="card__body">
+              <h2 class="card__title">{{ tattoo.title }}</h2>
+              <dl class="meta-list card__meta">
+                {% if tattoo.placement %}<dt>PLACEMENT</dt><dd>{{ tattoo.placement }}</dd>{% endif %}
+              </dl>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

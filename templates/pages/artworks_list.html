@@ -1,0 +1,70 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// PORTFOLIO</span><span class="meta__sep"> — </span><span class="meta__label">ARTWORK</span></span>
+      <span class="section-marker__rule"></span>
+      <span class="meta">{{ paginator.count|pluralize_count }} WORK{{ paginator.count|pluralize|upper }}</span>
+    </div>
+
+    <h1 class="display display--l" style="margin-bottom: var(--space-5)">ARTWORK</h1>
+
+    <div class="filter-group">
+      <p class="meta filter-group__label">// CATEGORY</p>
+      <nav class="filter-rail" aria-label="Filter by category">
+        <a class="chip{% if not active_filters.category %} chip--active{% endif %}" href="{% url 'artworks:list' %}">ALL</a>
+        {% for c in categories %}
+          <a class="chip{% if active_filters.category == c.slug %} chip--active{% endif %}"
+             href="?category={{ c.slug }}">{{ c.name }} <span class="chip__count">{{ c.work_count|pluralize_count }}</span></a>
+        {% endfor %}
+      </nav>
+
+      {% if years %}
+      <p class="meta filter-group__label">// YEAR</p>
+      <nav class="filter-rail" aria-label="Filter by year">
+        {% for y in years %}
+          <a class="chip{% if active_filters.year == y|stringformat:'s' %} chip--active{% endif %}"
+             href="?year={{ y }}{% if active_filters.category %}&category={{ active_filters.category }}{% endif %}">{{ y }}</a>
+        {% endfor %}
+      </nav>
+      {% endif %}
+
+      <p class="meta filter-group__label">// AVAILABILITY</p>
+      <nav class="filter-rail" aria-label="Filter by availability">
+        {% for value, label in availability_choices %}
+          <a class="chip{% if active_filters.availability == value %} chip--active{% endif %}"
+             href="?availability={{ value }}{% if active_filters.category %}&category={{ active_filters.category }}{% endif %}">{{ label|upper }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+
+    <div class="editorial-run">
+      {% for artwork in artworks %}
+        {% with primary=artwork.primary_image %}
+        <a class="card" href="{{ artwork.get_absolute_url }}">
+          <span class="card__hairline"></span>
+          {% if primary %}
+            {% dither_image primary.asset alt=artwork.title sizes="(max-width:768px) 100vw, 33vw" placeholder=artwork.is_placeholder %}
+          {% else %}
+            <div class="dither dither--empty"><span class="meta">NO IMAGE</span></div>
+          {% endif %}
+          <div class="card__body">
+            <h2 class="card__title">{{ artwork.title }}</h2>
+            <dl class="meta-list card__meta">
+              <dt>CATEGORY</dt><dd>{{ artwork.category.name }}</dd>
+              {% if artwork.medium %}<dt>MEDIUM</dt><dd>{{ artwork.medium }}</dd>{% endif %}
+              {% if artwork.dimensions %}<dt>SIZE</dt><dd>{{ artwork.dimensions }}</dd>{% endif %}
+              {% if artwork.year %}<dt>YEAR</dt><dd>{{ artwork.year }}</dd>{% endif %}
+              <dt>STATUS</dt><dd>{{ artwork.get_availability_display|upper }}</dd>
+            </dl>
+          </div>
+        </a>
+        {% endwith %}
+      {% empty %}
+        {% include "components/empty_state.html" with marker="// 000 — NO ARTWORK MATCHES" message="Try removing a filter." only %}
+      {% endfor %}
+    </div>
+
+    {% include "components/pagination.html" %}
+  </section>
+{% endblock %}

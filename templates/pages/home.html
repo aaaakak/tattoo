@@ -1,0 +1,174 @@
+{% extends "base/base.html" %}
+{% block title %}{{ site.site_name|default:'TattoWeb' }}{% if artist %} — {{ artist.display_name }}{% endif %}{% endblock %}
+{% block content %}
+  <section class="hero">
+    <div class="hero__media">
+      {% if site.hero_media %}
+        <img src="{{ site.hero_media.file.url }}" alt="{{ site.hero_media.alt_text }}" fetchpriority="high">
+      {% endif %}
+    </div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+
+    <div class="container hero__content" data-reveal>
+      <p class="meta hero__kicker">{{ site.hero_kicker|default:"TATTOO ARTIST / VISUAL ARTIST" }}</p>
+
+      <h1 class="display hero__statement">
+        {% for line in site.hero_lines %}
+          <span class="line-mask"><span>{{ line }}</span></span>
+        {% empty %}
+          <span class="line-mask"><span>ART</span></span>
+          <span class="line-mask"><span>THAT</span></span>
+          <span class="line-mask"><span>MOVES</span></span>
+          <span class="line-mask"><span>WITH YOU</span></span>
+        {% endfor %}
+      </h1>
+
+      <div class="hero__actions">
+        <a class="btn btn--ghost" href="{% url 'tattoos:list' %}">VIEW TATTOOS</a>
+        {% if booking_open %}
+          <a class="btn btn--primary" href="{% url 'booking:create' %}">BOOK A SESSION</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <p class="hero__meta-rail meta">// 001 — PORTFOLIO / STUDIO / ARCHIVE</p>
+  </section>
+
+  {# ---- 002 STATEMENT ---------------------------------------------------- #}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// 002</span><span class="meta__sep"> — </span><span class="meta__label">STATEMENT</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+
+    <div class="split">
+      <div class="split__aside">
+        <p class="title">{{ artist.statement|default:"INK IS ONLY THE MEDIUM." }}</p>
+      </div>
+      <div class="split__main">
+        <div class="body-prose">
+          {% for para in artist.biography_paragraphs|slice:":1" %}
+            <p>{{ para }}</p>
+          {% empty %}
+            <p>The artist's statement and biography are managed entirely from the Django admin. No business content is hard-coded into this template.</p>
+          {% endfor %}
+        </div>
+        <p style="margin-top: var(--space-3)">
+          <a class="btn btn--quiet" href="{% url 'artists:about' %}">READ FULL BIOGRAPHY →</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {# ---- 003 STATISTICS --------------------------------------------------- #}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// 003</span><span class="meta__sep"> — </span><span class="meta__label">BY THE NUMBERS</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+
+    <div class="grid-4">
+      {% for stat in artist.statistics.all %}
+        <div class="stat">
+          <span class="stat__value">{{ stat.value }}</span>
+          <span class="stat__label">{{ stat.label }}</span>
+        </div>
+      {% empty %}
+        <div class="stat"><span class="stat__value">10+</span><span class="stat__label">YEARS</span></div>
+        <div class="stat"><span class="stat__value">1200+</span><span class="stat__label">TATTOOS</span></div>
+        <div class="stat"><span class="stat__value">08</span><span class="stat__label">SIGNATURE STYLES</span></div>
+        <div class="stat"><span class="stat__value">01</span><span class="stat__label">VISION</span></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ---- 004 FEATURED TATTOOS --------------------------------------------- #}
+  {% if featured_tattoos %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// 004</span><span class="meta__sep"> — </span><span class="meta__label">SELECTED TATTOOS</span></span>
+      <span class="section-marker__rule"></span>
+      <a class="meta" href="{% url 'tattoos:list' %}">ALL →</a>
+    </div>
+
+    <div class="editorial-run">
+      {% for tattoo in featured_tattoos %}
+        {% with primary=tattoo.primary_image %}
+        <a class="card" href="{% url 'tattoos:detail' tattoo.slug %}">
+          <span class="card__hairline"></span>
+          <span class="card__index meta">// {{ forloop.counter|pluralize_count }}</span>
+          {% if primary %}
+            {% dither_image primary.asset alt=tattoo.title sizes="(max-width:768px) 100vw, 33vw" placeholder=tattoo.is_placeholder %}
+          {% endif %}
+          <div class="card__body">
+            <h2 class="card__title">{{ tattoo.title }}</h2>
+            <dl class="meta-list card__meta">
+              {% if tattoo.placement %}<dt>PLACEMENT</dt><dd>{{ tattoo.placement }}</dd>{% endif %}
+              {% if tattoo.style_names %}<dt>STYLE</dt><dd>{{ tattoo.style_names|join:", " }}</dd>{% endif %}
+            </dl>
+          </div>
+        </a>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ---- 005 FEATURED ARTWORK --------------------------------------------- #}
+  {% if featured_artworks %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// 005</span><span class="meta__sep"> — </span><span class="meta__label">SELECTED ARTWORK</span></span>
+      <span class="section-marker__rule"></span>
+      <a class="meta" href="{% url 'artworks:list' %}">ALL →</a>
+    </div>
+
+    <div class="grid-2">
+      {% for artwork in featured_artworks %}
+        {% with primary=artwork.primary_image %}
+        <a class="card" href="{% url 'artworks:detail' artwork.slug %}">
+          <span class="card__hairline"></span>
+          {% if primary %}
+            {% dither_image primary.asset alt=artwork.title sizes="(max-width:768px) 100vw, 50vw" placeholder=artwork.is_placeholder %}
+          {% endif %}
+          <div class="card__body">
+            <h2 class="card__title">{{ artwork.title }}</h2>
+            <dl class="meta-list card__meta">
+              {% if artwork.medium %}<dt>MEDIUM</dt><dd>{{ artwork.medium }}</dd>{% endif %}
+              {% if artwork.year %}<dt>YEAR</dt><dd>{{ artwork.year }}</dd>{% endif %}
+            </dl>
+          </div>
+        </a>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ---- 006 STYLES ------------------------------------------------------- #}
+  {% if styles %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// 006</span><span class="meta__sep"> — </span><span class="meta__label">SIGNATURE STYLES</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+    <div class="filter-rail">
+      {% for style in styles %}
+        <a class="chip" href="{% url 'styles:detail' style.slug %}">{{ style.name }}</a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ---- CLOSING CTA ------------------------------------------------------ #}
+  {% if booking_open %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// 007</span><span class="meta__sep"> — </span><span class="meta__label">OPEN FOR BOOKINGS</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+    <p class="display display--m" style="margin-bottom: var(--space-4)">LET'S MAKE SOMETHING PERMANENT.</p>
+    <a class="btn btn--primary" href="{% url 'booking:create' %}">BOOK A SESSION</a>
+  </section>
+  {% endif %}
+{% endblock %}

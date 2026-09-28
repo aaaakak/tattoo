@@ -1,0 +1,132 @@
+/* ==========================================================================
+   TattoWeb — DESIGN TOKENS
+   The single source of truth for the visual system.
+   Values marked MEASURED come from pixel analysis of the five references
+   (see docs/visual-analysis.md). Identity: INK AS DATA.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------
+     COLOUR — INK (primary, dark)
+     Near-black with a faint cold cast, NOT a software navy.
+     --------------------------------------------------------------------- */
+  --c-void:        #050507;   /* primary ground */
+  --c-void-2:      #0B0B0E;   /* elevated surface */
+  --c-void-3:      #111114;   /* inset / hover surface */
+  --c-hairline:    #1C1C22;   /* 1px borders, grid rules */
+  --c-hairline-2:  #26262E;   /* stronger divider */
+
+  --c-ink-white:   #EDEAE4;   /* primary text (off-white, never #FFFFFF) */
+  --c-ink-mute:    #A0A0AA;   /* secondary text -- lifted from #8A8A93 for AA at 11px mono */
+  --c-ink-dim:     #6A6A74;   /* tertiary / disabled -- lifted for legibility of mono labels */
+
+  /* ---------------------------------------------------------------------
+     COLOUR — PAPER (secondary, light surfaces)
+     --------------------------------------------------------------------- */
+  --c-paper:       #F0EFEA;   /* MEASURED base #F0F0F0, warmed to aged paper */
+  --c-paper-2:     #E4E2DA;   /* card / inset */
+  --c-paper-ink:   #0A0A0C;   /* text on paper */
+  --c-paper-mute:  #5A5A5E;
+  --c-paper-line:  #D2D0C8;
+
+  /* ---------------------------------------------------------------------
+     COLOUR — COBALT (accent, RATIONED)
+     Reference 1 measures cobalt at 0.1% of pixels. Reference 3 measures it
+     at 85.5% and is the declared anti-pattern.
+     HARD RULE: cobalt must never exceed ~5% of any viewport's pixels.
+     --------------------------------------------------------------------- */
+  --c-cobalt:      #1B2CFF;   /* active state, CTA, focus ring */
+  --c-cobalt-deep: #0000B0;   /* MEASURED — flanking pillar bars, borders */
+  --c-cobalt-hi:   #6060F0;   /* MEASURED — halftone highlight tint */
+  --c-cobalt-glow: rgba(27, 44, 255, 0.14);
+
+  /* Status — used only on booking pills and form errors */
+  --c-ok:     #4ADE80;
+  --c-warn:   #F5A524;
+  --c-error:  #FF5A5A;
+
+  /* ---------------------------------------------------------------------
+     TYPOGRAPHY
+     Three voices + one editorial serif. Never more than two per viewport.
+     --------------------------------------------------------------------- */
+  --font-display: "Anton", "Archivo Narrow", "Oswald", Impact, sans-serif;
+  --font-serif:   "Playfair Display", "Bodoni Moda", Georgia, serif;
+  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Fluid type scale */
+  --fs-display-xl: clamp(3rem, 11vw, 13rem);
+  --fs-display-l:  clamp(2.25rem, 6vw, 5.5rem);
+  --fs-display-m:  clamp(1.75rem, 3.5vw, 3rem);
+  --fs-title:      clamp(1.5rem, 2.4vw, 2.25rem);
+  --fs-body:       1.0625rem;   /* 17px */
+  --fs-small:      0.875rem;
+  --fs-meta:       0.75rem;     /* 12px — all technical metadata (raised from 11px for legibility) */
+
+  --lh-display: 0.86;
+  --lh-title:   1.1;
+  --lh-body:    1.65;
+
+  --ls-display: -0.04em;   /* display type is always negatively tracked */
+  --ls-meta:     0.16em;   /* mono metadata is always positively tracked */
+
+  /* ---------------------------------------------------------------------
+     SPACE — strict 8px base (MEASURED from reference 1)
+     --------------------------------------------------------------------- */
+  --space-unit: 8px;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-5: 3rem;
+  --space-6: 4rem;
+  --space-7: 6rem;
+
+  --gutter:   clamp(1rem, 4vw, 4rem);
+  --section-y: clamp(5rem, 12vh, 12rem);
+  --col-gap:  24px;          /* MEASURED from reference 1 */
+  --max-w:    1440px;
+
+  /* ---------------------------------------------------------------------
+     FORM
+     Radius 0px (MEASURED from reference 1). Inputs may soften to 2px.
+     No shadows anywhere — depth comes from value and hairlines.
+     --------------------------------------------------------------------- */
+  --radius:     0px;
+  --radius-input: 2px;
+  --border:     1px solid var(--c-hairline);
+  --border-strong: 1px solid var(--c-hairline-2);
+
+  /* ---------------------------------------------------------------------
+     MOTION — rationed like cobalt
+     --------------------------------------------------------------------- */
+  --dur-fast:  180ms;
+  --dur-base:  420ms;   /* the image resolve */
+  --dur-slow:  720ms;
+  --ease-out:  cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ---------------------------------------------------------------------
+     LAYERS
+     --------------------------------------------------------------------- */
+  --z-grain:      1;
+  --z-header:     100;
+  --z-overlay:    200;
+  --z-lightbox:   300;
+  --z-cursor:     400;
+}
+
+/* ==========================================================================
+   PAPER THEME — applied via .theme--paper
+   Used for sections that want the off-white ground (reference 4).
+   ========================================================================== */
+.theme--paper {
+  --c-void:       var(--c-paper);
+  --c-void-2:     var(--c-paper-2);
+  --c-void-3:     var(--c-paper-2);
+  --c-hairline:   var(--c-paper-line);
+  --c-hairline-2: #C0BEB6;
+  --c-ink-white:  var(--c-paper-ink);
+  --c-ink-mute:   var(--c-paper-mute);
+  --c-ink-dim:    #8A8880;
+}

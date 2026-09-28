@@ -1,0 +1,53 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// SHOP</span><span class="meta__sep"> — </span><span class="meta__label">PRINTS &amp; ORIGINALS</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+
+    <h1 class="display display--l" style="margin-bottom: var(--space-5)">SHOP</h1>
+
+    <div class="filter-group">
+      <p class="meta filter-group__label">// CATEGORY</p>
+      <nav class="filter-rail" aria-label="Filter by category">
+        <a class="chip{% if not active_filters.category %} chip--active{% endif %}" href="{% url 'shop:list' %}">ALL</a>
+        {% for c in categories %}
+          <a class="chip{% if active_filters.category == c.slug %} chip--active{% endif %}"
+             href="?category={{ c.slug }}">{{ c.name }} <span class="chip__count">{{ c.product_count|pluralize_count }}</span></a>
+        {% endfor %}
+      </nav>
+
+      <p class="meta filter-group__label">// TYPE</p>
+      <nav class="filter-rail" aria-label="Filter by type">
+        {% for value, label in type_choices %}
+          <a class="chip{% if active_filters.type == value %} chip--active{% endif %}"
+             href="?type={{ value }}{% if active_filters.category %}&category={{ active_filters.category }}{% endif %}">{{ label|upper }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+
+    <div class="editorial-run">
+      {% for product in products %}
+        {% with primary=product.images.first %}
+        <a class="card" href="{{ product.get_absolute_url }}">
+          <span class="card__hairline"></span>
+          {% if primary %}{% dither_image primary.asset alt=product.name sizes="(max-width:768px) 100vw, 33vw" %}{% endif %}
+          <div class="card__body">
+            <h2 class="card__title">{{ product.name }}</h2>
+            <dl class="meta-list card__meta">
+              <dt>PRICE</dt><dd>{{ product.price|money:product.currency }}</dd>
+              <dt>TYPE</dt><dd>{{ product.get_product_type_display|upper }}</dd>
+              <dt>STATUS</dt><dd>{{ product.get_availability_display|upper }}</dd>
+            </dl>
+          </div>
+        </a>
+        {% endwith %}
+      {% empty %}
+        {% include "components/empty_state.html" with marker="// 000 — SHOP EMPTY" message="Prints, posters and originals published from the admin appear here." only %}
+      {% endfor %}
+    </div>
+
+    {% include "components/pagination.html" %}
+  </section>
+{% endblock %}

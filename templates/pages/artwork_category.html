@@ -1,0 +1,31 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <p class="meta" style="margin-bottom: var(--space-4)"><a href="{% url 'artworks:list' %}">← ALL ARTWORK</a></p>
+
+    <h1 class="display display--l">{{ category.name }}</h1>
+    {% if category.description %}
+      <div class="body-prose" style="margin-top: var(--space-3)">{{ category.description|linebreaks }}</div>
+    {% endif %}
+
+    <div class="editorial-run" style="margin-top: var(--space-5)">
+      {% for artwork in artworks %}
+        <a class="card" href="{{ artwork.get_absolute_url }}">
+          <span class="card__hairline"></span>
+          {% with p=artwork.primary_image %}
+            {% if p %}{% dither_image p.asset alt=artwork.title sizes="(max-width:768px) 100vw, 33vw" placeholder=artwork.is_placeholder %}{% endif %}
+          {% endwith %}
+          <div class="card__body">
+            <h2 class="card__title">{{ artwork.title }}</h2>
+            <dl class="meta-list card__meta">
+              {% if artwork.medium %}<dt>MEDIUM</dt><dd>{{ artwork.medium }}</dd>{% endif %}
+              {% if artwork.year %}<dt>YEAR</dt><dd>{{ artwork.year }}</dd>{% endif %}
+            </dl>
+          </div>
+        </a>
+      {% empty %}
+        {% include "components/empty_state.html" with marker="// 000 — NOTHING IN THIS CATEGORY" message="No published work in this category yet." only %}
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

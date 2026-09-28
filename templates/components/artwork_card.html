@@ -1,0 +1,27 @@
+{% comment %}
+Artwork card — the shared portfolio unit for tattoos, artworks and products.
+
+Contract (pass with `only`):
+  asset, title, href, index, meta_pairs (list of (label, value)), placeholder, sizes
+{% endcomment %}
+<a class="card" href="{{ href }}">
+  <span class="card__hairline"></span>
+  {% if index %}<span class="card__index meta">// {{ index }}</span>{% endif %}
+
+  {% if asset %}
+    {% dither_image asset alt=title sizes=sizes placeholder=placeholder %}
+  {% else %}
+    <div class="dither dither--empty"><span class="meta">NO IMAGE</span></div>
+  {% endif %}
+
+  <div class="card__body">
+    <h2 class="card__title">{{ title }}</h2>
+    {% if meta_pairs %}
+      <dl class="meta-list card__meta">
+        {% for label, value in meta_pairs %}
+          {% if value %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endif %}
+        {% endfor %}
+      </dl>
+    {% endif %}
+  </div>
+</a>

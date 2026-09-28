@@ -1,0 +1,131 @@
+{% extends "base/base.html" %}
+{% comment %}
+Staff-only, DEBUG-gated visual-system reference. This is how the design system is
+VERIFIED rather than believed: every token, every type style, every component state,
+in both themes, at every breakpoint.
+{% endcomment %}
+{% block title %}Design System{% endblock %}
+
+{% block content %}
+<section class="section container">
+  <p class="meta">// INTERNAL — VISUAL SYSTEM REFERENCE</p>
+  <h1 class="display display--l" style="margin: var(--space-3) 0">DESIGN SYSTEM</h1>
+  <p class="body-prose">Identity: INK AS DATA. Values marked MEASURED come from pixel analysis of the five references.</p>
+
+  <div class="ds-row">
+    <p class="meta">COLOR — INK</p>
+    <div class="grid-4">
+      <div class="swatch"><div class="swatch__chip" style="background:#050507"></div><span class="swatch__name">VOID</span><span class="swatch__value">#050507</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#0B0B0E"></div><span class="swatch__name">VOID-2</span><span class="swatch__value">#0B0B0E</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#1C1C22"></div><span class="swatch__name">HAIRLINE</span><span class="swatch__value">#1C1C22</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#EDEAE4"></div><span class="swatch__name">INK-WHITE</span><span class="swatch__value">#EDEAE4</span></div>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">COLOR — PAPER</p>
+    <div class="grid-4">
+      <div class="swatch"><div class="swatch__chip" style="background:#F0EFEA"></div><span class="swatch__name">PAPER</span><span class="swatch__value">#F0EFEA</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#E4E2DA"></div><span class="swatch__name">PAPER-2</span><span class="swatch__value">#E4E2DA</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#0A0A0C"></div><span class="swatch__name">PAPER-INK</span><span class="swatch__value">#0A0A0C</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#D2D0C8"></div><span class="swatch__name">PAPER-LINE</span><span class="swatch__value">#D2D0C8</span></div>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">COLOR — COBALT</p>
+    <div class="grid-3">
+      <div class="swatch"><div class="swatch__chip" style="background:#1B2CFF"></div><span class="swatch__name">COBALT</span><span class="swatch__value">#1B2CFF · accent only</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#0000B0"></div><span class="swatch__name">COBALT-DEEP</span><span class="swatch__value">#0000B0 · MEASURED</span></div>
+      <div class="swatch"><div class="swatch__chip" style="background:#6060F0"></div><span class="swatch__name">COBALT-HI</span><span class="swatch__value">#6060F0 · MEASURED</span></div>
+    </div>
+    <p class="meta" style="margin-top: var(--space-2)">HARD RULE — cobalt &le; 5% of any viewport. Reference 1 measures 0.1%; reference 3 measures 85.5%.</p>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">TYPE — DISPLAY</p>
+    <div>
+      <p class="display">ANTON CONDENSED</p>
+      <p class="display display--l">DISPLAY LARGE</p>
+      <p class="display display--m">DISPLAY MEDIUM</p>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">TYPE — SERIF</p>
+    <div><p class="title" style="font-size:2.5rem">Editorial serif voice</p></div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">TYPE — BODY &amp; MONO</p>
+    <div>
+      <p class="body-prose">Body prose in Inter at 17px with a 1.65 line height and a 68ch measure.</p>
+      <p class="meta">// 003 — PLACEMENT: FOREARM</p>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">BUTTONS</p>
+    <div style="display:flex; gap:var(--space-2); flex-wrap:wrap">
+      <a class="btn btn--primary" href="#">PRIMARY CTA</a>
+      <a class="btn btn--ghost" href="#">GHOST</a>
+      <a class="btn btn--quiet" href="#">QUIET →</a>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">CHIPS / PILLS</p>
+    <div style="display:flex; gap:var(--space-1); flex-wrap:wrap">
+      <span class="chip">BLACKWORK</span>
+      <span class="chip chip--active">FINE LINE</span>
+      <span class="pill" style="color:var(--c-ok)">APPROVED</span>
+      <span class="pill" style="color:var(--c-warn)">REVIEWING</span>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">STAT BLOCK</p>
+    <div class="grid-4">
+      <div class="stat"><span class="stat__value">10+</span><span class="stat__label">YEARS</span></div>
+      <div class="stat"><span class="stat__value">1200+</span><span class="stat__label">TATTOOS</span></div>
+      <div class="stat"><span class="stat__value">08</span><span class="stat__label">SIGNATURE STYLES</span></div>
+      <div class="stat"><span class="stat__value">01</span><span class="stat__label">VISION</span></div>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">FORM</p>
+    <div style="max-width:420px">
+      <div class="field">
+        <label class="field__label" for="ds-input">PLACEMENT</label>
+        <input class="field__input" id="ds-input" type="text" placeholder="Forearm">
+        <span class="field__help">Mono label, 1px hairline input, 0 radius, cobalt focus ring.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">ACCORDION</p>
+    <div style="max-width:640px">
+      <div class="accordion__item">
+        <button class="accordion__trigger" aria-expanded="false" data-accordion-trigger>
+          <span>Artist notes</span><span class="accordion__icon">+</span>
+        </button>
+        <div class="accordion__panel" hidden>Panel content, revealed by the minimal + affordance.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-row">
+    <p class="meta">EMPTY STATE</p>
+    <div class="empty-state"><p class="meta">// 000 — NOTHING HERE YET</p><p class="body-prose">Designed empty states, not an afterthought.</p></div>
+  </div>
+</section>
+
+<section class="section container theme--paper" style="padding-inline:var(--gutter)">
+  <p class="meta">// PAPER THEME</p>
+  <h2 class="display display--m" style="color:var(--c-ink-white)">PAPER MODE</h2>
+  <p class="body-prose">The same tokens remapped: --c-void becomes paper. Used for light editorial sections.</p>
+  <a class="btn btn--primary" href="#">COBALT STILL AN ACCENT</a>
+</section>
+{% endblock %}

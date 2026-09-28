@@ -1,0 +1,14 @@
+{% comment %}
+Filter rail — link-based, shareable, indexable, works without JavaScript.
+
+Contract: options (list of {label, url, active}), heading
+{% endcomment %}
+{% if options %}
+<nav class="filter-rail" aria-label="{{ heading|default:'Filters' }}">
+  {% for opt in options %}
+    <a class="chip{% if opt.active %} chip--active{% endif %}"
+       href="{{ opt.url }}"
+       {% if opt.active %}aria-current="true"{% endif %}>{{ opt.label }}</a>
+  {% endfor %}
+</nav>
+{% endif %}

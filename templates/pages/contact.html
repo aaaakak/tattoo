@@ -1,0 +1,48 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// CONTACT</span><span class="meta__sep"> — </span><span class="meta__label">SAY IT PLAINLY</span></span>
+      <span class="section-marker__rule"></span>
+    </div>
+
+    <h1 class="display display--l" style="margin-bottom: var(--space-5)">CONTACT</h1>
+
+    <div class="split">
+      <div class="split__aside">
+        <dl class="meta-list" style="font-size: var(--fs-small)">
+          {% if site.contact_email %}<dt>EMAIL</dt><dd><a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a></dd>{% endif %}
+          {% if site.contact_phone %}<dt>PHONE</dt><dd>{{ site.contact_phone }}</dd>{% endif %}
+          {% for link in social_links %}
+            <dt>{{ link.get_platform_display|upper }}</dt>
+            <dd>{% if link.url %}<a href="{{ link.url }}" target="_blank" rel="me noopener">{{ link.label }}</a>{% else %}{{ link.label }}{% endif %}</dd>
+          {% endfor %}
+        </dl>
+      </div>
+
+      <div class="split__main">
+        {% if working_hours %}
+          <p class="meta">// WORKING HOURS</p>
+          <dl class="meta-list" style="margin-top: var(--space-2)">
+            {% for w in working_hours %}
+              <dt>{{ w.get_weekday_display|upper }}</dt>
+              <dd>{{ w.start_time|time:"H:i" }} – {{ w.end_time|time:"H:i" }}</dd>
+            {% endfor %}
+          </dl>
+          <p class="meta" style="margin-top: var(--space-2)">Derived from the booking availability — the site cannot contradict it.</p>
+        {% endif %}
+
+        {% if site.studio_address %}
+          <p class="meta" style="margin-top: var(--space-5)">// STUDIO</p>
+          <div class="body-prose" style="margin-top: var(--space-2)">{{ site.studio_address|linebreaks }}</div>
+        {% endif %}
+
+        {% if booking_open %}
+          <p style="margin-top: var(--space-5)">
+            <a class="btn btn--primary" href="{% url 'booking:create' %}">BOOK A SESSION</a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

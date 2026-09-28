@@ -1,0 +1,223 @@
+/* ==========================================================================
+   LAYOUT — containers, grids, runs, chrome
+   ========================================================================== */
+
+.container {
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.container--wide { max-width: none; }
+
+.section { padding-block: var(--section-y); }
+.section--tight { padding-block: var(--space-6); }
+
+/* --- Hairline rule: the primary structural device --- */
+.rule {
+  border: 0;
+  border-top: var(--border);
+  margin: 0;
+  width: 100%;
+}
+
+/* --- Section marker row: mono label + rule filling remaining width --- */
+.section-marker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.section-marker__rule { flex: 1; height: 1px; background: var(--c-hairline); }
+
+/* ==========================================================================
+   EDITORIAL RUN — reference 4's strict 3-column grid with FIXED internal order:
+   image -> mono label -> serif title -> body -> large artwork
+
+   Portfolio imagery is portrait-dominant but not uniform (measured range 0.59-0.92
+   across the art references, plus landscape triptychs). A rigid row grid therefore
+   produces large vertical voids when a short item neighbours a tall one.
+
+   The fix is to let cards flow in columns rather than rows: each item takes its natural
+   height and the next item starts immediately beneath it. This is what the masonry
+   layout will formalise in Phase 6; here it prevents the voids without a JS library.
+   ========================================================================== */
+.editorial-run {
+  column-count: 3;
+  column-gap: var(--col-gap);
+}
+.editorial-run > * {
+  break-inside: avoid;
+  margin-bottom: var(--col-gap);
+  display: block;
+}
+
+/* Single-column contexts (empty states, full-width notices) must not be columnised. */
+.editorial-run > .empty-state,
+.editorial-run > .phase-note {
+  column-span: all;
+}
+
+/* ==========================================================================
+   STAGGERED RUN — reference 1's zigzag asymmetry
+   ========================================================================== */
+.staggered-run {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--col-gap);
+}
+.staggered-run__item { grid-column: span 6; }
+.staggered-run__item--offset { grid-column: 7 / span 6; margin-top: var(--space-7); }
+.staggered-run__item--reverse { display: flex; flex-direction: column-reverse; }
+
+/* ==========================================================================
+   GRID UTILITIES
+   ========================================================================== */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--col-gap); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--col-gap); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--col-gap); }
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--col-gap);
+}
+.split__aside { grid-column: span 4; }
+.split__main  { grid-column: span 8; }
+
+/* ==========================================================================
+   HEADER — sticky, glass after scroll
+   ========================================================================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  border-bottom: var(--border);
+  background: transparent;
+  transition: background-color var(--dur-base) var(--ease-out),
+              backdrop-filter var(--dur-base) var(--ease-out);
+}
+/* Glass is permitted on exactly two surfaces: this header and the lightbox. */
+.site-header[data-scrolled="true"] {
+  background: rgba(5, 5, 7, 0.72);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+}
+
+.monogram {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-ink-white);
+  line-height: 1;
+}
+
+.site-nav { display: flex; gap: var(--space-4); align-items: center; }
+.site-nav__link {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-ink-mute);
+  padding-block: var(--space-1);
+  position: relative;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.site-nav__link::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 1px; width: 0;
+  background: var(--c-cobalt);
+  transition: width var(--dur-fast) var(--ease-out);
+}
+.site-nav__link:hover { color: var(--c-ink-white); }
+.site-nav__link:hover::after { width: 100%; }
+.site-nav__link[aria-current="page"] { color: var(--c-ink-white); }
+.site-nav__link[aria-current="page"]::after { width: 100%; }
+
+.nav-toggle { display: none; }
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.site-footer {
+  border-top: var(--border);
+  padding-block: var(--space-6);
+  margin-top: var(--space-7);
+}
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: var(--space-5);
+}
+.site-footer__end {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: var(--border);
+}
+
+/* ==========================================================================
+   GRAIN OVERLAY — mounted ONCE in base.html. Never per-component.
+   ========================================================================== */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+.theme--paper .grain { opacity: 0.025; }
+
+/* ==========================================================================
+   RESPONSIVE — mobile is RETHOUGHT, not shrunk
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .editorial-run { column-count: 2; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .site-footer__grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .editorial-run { column-count: 1; }
+  .staggered-run__item,
+  .staggered-run__item--offset { grid-column: span 12; margin-top: 0; }
+  .split__aside, .split__main { grid-column: span 12; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .site-footer__grid { grid-template-columns: 1fr; }
+
+  /* Mobile nav: a full-screen overlay, not a squeezed bar */
+  .site-nav { display: none; }
+  .site-nav[data-open="true"] {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    background: var(--c-void);
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--gutter);
+    gap: var(--space-3);
+  }
+  .site-nav[data-open="true"] .site-nav__link { font-size: 1.5rem; }
+  .nav-toggle {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    letter-spacing: var(--ls-meta);
+    text-transform: uppercase;
+    color: var(--c-ink-white);
+  }
+}

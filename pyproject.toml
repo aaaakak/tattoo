@@ -1,0 +1,69 @@
+[project]
+name = "tattoweb"
+version = "0.1.0"
+description = "Portfolio, studio and shop website for a tattoo and visual artist."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # --- Django stack ---
+    "django==5.2.*",
+    "djangorestframework==3.16.*",
+    "django-environ==0.12.*",
+    "django-ratelimit==4.1.*",
+    # --- API service layer (FastAPI owns the public JSON API) ---
+    "fastapi==0.121.*",
+    "uvicorn[standard]==0.40.*",
+    # WSGI server for the Django process in production. runserver is a development
+    # server and is not deployable; this is the conventional, minimal replacement.
+    "gunicorn==23.0.*",
+    "sqlalchemy==2.0.*",
+    "pydantic==2.13.*",
+    "pydantic-settings==2.13.*",
+    # Required by pydantic.EmailStr. Without it, importing a schema that uses EmailStr
+    # raises ImportError at import time -- which is a startup failure, not a runtime one.
+    "email-validator==2.3.*",
+    "psycopg[binary]==3.2.*",
+    # --- Images: derivatives + dither generation, no external thumbnail app ---
+    "pillow==11.3.*",
+]
+
+[project.optional-dependencies]
+
+[dependency-groups]
+dev = [
+    "pytest==8.*",
+    "pytest-django==4.11.*",
+    "pytest-cov==7.*",
+    "ruff==0.14.*",
+    "django-debug-toolbar==5.*",
+    "httpx>=0.28.1",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py", "*_test.py"]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+exclude = [".venv", "migrations", "media", "staticfiles"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "DJ", "SIM", "RUF"]
+ignore = [
+    "E501",   # line length handled by formatter
+    "B008",   # Django idioms (defaults in signatures)
+    "RUF012", # mutable class attrs in Django Meta
+    "RUF001", # ambiguous unicode: the multiplication sign in "1200 × 800" is intentional
+    # PEP 695 `class Page[T]` syntax is unavailable in modules that use
+    # `from __future__ import annotations`, which the schema modules need. The
+    # Generic[T] form is correct and required here, not a stylistic lapse.
+    "UP046",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings/*" = ["F403", "F405"]
+"tests/*" = ["S101"]

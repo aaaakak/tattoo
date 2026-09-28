@@ -1,0 +1,46 @@
+/* ==========================================================================
+   PAGES — page-level composition. Scoped via body.page--<name>.
+   ========================================================================== */
+
+/* --- Home --- */
+.page--home .hero { margin-bottom: 0; }
+
+/* --- Design system reference page (staff-only, debug-gated) --- */
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.swatch__chip {
+  height: 72px;
+  border: var(--border);
+}
+.swatch__name { font-family: var(--font-mono); font-size: var(--fs-meta);
+                letter-spacing: var(--ls-meta); text-transform: uppercase; }
+.swatch__value { font-family: var(--font-mono); font-size: var(--fs-meta); color: var(--c-ink-dim); }
+
+.ds-row {
+  padding-block: var(--space-4);
+  border-bottom: var(--border);
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* --- Placeholder / phase banner shown while a section is not yet built --- */
+.phase-note {
+  border-left: 2px solid var(--c-cobalt);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-ink-mute);
+  background: var(--c-void-2);
+}
+
+@media (max-width: 768px) {
+  .ds-row { grid-template-columns: 1fr; gap: var(--space-2); }
+  .hero__meta-rail { display: none; }
+}

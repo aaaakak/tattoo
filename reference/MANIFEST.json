@@ -1,0 +1,48 @@
+{
+  "design_references": [
+    "ref_10-54-41.png",
+    "ref_10-54-46.png",
+    "ref_10-54-51.png",
+    "ref_10-54-56.png",
+    "ref_10-55-01.png"
+  ],
+  "art_references": [
+    {
+      "file": "art-references/gothic-angel-sword-paper.png",
+      "source": "img_79f388858b42.png",
+      "sha256_16": "5c6d3d6f16a1198a",
+      "size": "1246x1354",
+      "ratio": 0.92,
+      "monochrome": true,
+      "description": "Winged female figure + ornate vertical sword, gothic/medieval, fine-line + heavy cross-hatching, distressed antique paper ground, thorny vines"
+    },
+    {
+      "file": "art-references/sacred-heart-octagon-frame.png",
+      "source": "img_9791041c3b10.png",
+      "sha256_16": "0b0ee426dbf489af",
+      "size": "1004x1182",
+      "ratio": 0.85,
+      "monochrome": false,
+      "description": "Anatomical heart pierced by sword, octagonal Greek-key frame, baroque filigree, symmetrical gothic icon"
+    },
+    {
+      "file": "art-references/tattoo-flash-angel-panel.png",
+      "source": "img_b792849f40b0.png",
+      "sha256_16": "70fc964df7e14f7a",
+      "size": "880x1484",
+      "ratio": 0.59,
+      "monochrome": true,
+      "description": "Dense black-and-white tattoo-flash panel: dark-winged angel with sword, haloed figure, hooded figure, crosses, moth/eye motif, filigree, manuscript script ground"
+    },
+    {
+      "file": "art-references/triptych-angel-cross-seraph.png",
+      "source": "img_df163ee90731.png",
+      "sha256_16": "8985b1c7ccbe73fd",
+      "size": "1354x1552",
+      "ratio": 0.87,
+      "monochrome": true,
+      "description": "Vertical triptych: angel in gothic arch niche, ornate cruciform spire with wings, winged seraph/knight with staff; fine-line + engraving, aged manuscript texture"
+    }
+  ],
+  "note": "design_references = the five INK AS DATA source screenshots. art_references = gothic fine-line engraving tattoo direction (Telegram, 2026-09-24)."
+}

@@ -1,0 +1,50 @@
+{% comment %}
+DITHER IMAGE — the signature component of the site.
+
+Rendered via the `{% dither_image %}` template tag, which resolves the variant chain in
+Python and passes it in as `variants`. Both layers are generated at UPLOAD time by
+apps/core/ingest.py, so this component costs zero runtime CPU.
+
+Context provided by the tag:
+  asset, variants, alt, ratio, priority, sizes, resolve, mode
+
+Two stacked layers: full-fidelity underneath, halftone/dither on top. The dither rests on
+top and resolves away on hover/focus over 420ms. With JS disabled everything renders
+resolved — the dither is pure enhancement, never a dependency.
+
+Accessibility: the dither layer is decorative and aria-hidden; the real image always
+carries the alt text.
+{% endcomment %}
+{% with full=variants.largest dith=variants.dither lqip=variants.lqip %}
+<figure class="dither{% if mode == 'paper' %} dither--paper{% endif %}"
+        style="--ratio: {% if ratio %}{{ ratio }}{% elif asset.height %}{{ asset.width }} / {{ asset.height }}{% else %}4 / 5{% endif %}"
+        data-resolve-on="{{ resolve|default:'hover' }}"
+        data-threshold="{{ asset.dither_threshold }}"
+        {% if dith %}data-dither-src="{{ dith.file.url }}"{% else %}data-dither-missing="true"{% endif %}>
+
+  <img class="dither__img dither__img--full"
+       src="{{ full.file.url }}"
+       {% if sizes %}sizes="{{ sizes }}"{% endif %}
+       alt="{{ alt|default:asset.alt_text|default:'' }}"
+       width="{{ asset.width }}"
+       height="{{ asset.height }}"
+       {% if priority %}fetchpriority="high" decoding="sync"{% else %}loading="lazy" decoding="async"{% endif %}>
+
+  {% if dith %}
+    <img class="dither__img dither__img--dither"
+         src="{{ dith.file.url }}"
+         alt=""
+         aria-hidden="true"
+         loading="lazy"
+         decoding="async">
+  {% endif %}
+
+  {% if placeholder %}
+    {% comment %}
+      Demonstration content must never be mistaken for real work. The flag lives on the
+      content record (Tattoo/Artwork), not on the MediaAsset, so it is passed in.
+    {% endcomment %}
+    <figcaption class="dither__notice">DEMONSTRATION ARTWORK</figcaption>
+  {% endif %}
+</figure>
+{% endwith %}

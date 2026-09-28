@@ -1,0 +1,71 @@
+{% extends "base/base.html" %}
+{% block content %}
+  {% with primary=artwork.primary_image %}
+  <section class="section container">
+    <p class="meta" style="margin-bottom: var(--space-4)">
+      <a href="{% url 'artworks:list' %}">← ALL ARTWORK</a>
+    </p>
+
+    <div class="split">
+      <div class="split__aside">
+        <h1 class="title" style="margin-bottom: var(--space-3)">{{ artwork.title }}</h1>
+
+        {% if artwork.is_placeholder %}
+          <p class="phase-note" style="margin-bottom: var(--space-3)">
+            DEMONSTRATION CONTENT — generated sample artwork, not a real work by the artist.
+          </p>
+        {% endif %}
+
+        {% comment %}
+          Artwork is a gallery object, not a body-placement record: medium, dimensions,
+          year and edition -- never placement or size-on-body.
+        {% endcomment %}
+        <dl class="meta-list">
+          <dt>CATEGORY</dt><dd><a href="{{ artwork.category.get_absolute_url }}">{{ artwork.category.name }}</a></dd>
+          {% if artwork.medium %}<dt>MEDIUM</dt><dd>{{ artwork.medium }}</dd>{% endif %}
+          {% if artwork.dimensions %}<dt>DIMENSIONS</dt><dd>{{ artwork.dimensions }}</dd>{% endif %}
+          {% if artwork.year %}<dt>YEAR</dt><dd>{{ artwork.year }}</dd>{% endif %}
+          {% if artwork.edition_info %}<dt>EDITION</dt><dd>{{ artwork.edition_info }}</dd>{% endif %}
+          <dt>STATUS</dt><dd>{{ artwork.get_availability_display|upper }}</dd>
+          {% if artwork.price %}<dt>PRICE</dt><dd>{{ artwork.price|money:artwork.currency }}</dd>{% endif %}
+        </dl>
+      </div>
+
+      <div class="split__main">
+        {% if primary %}
+          <button class="dither-trigger" data-lb-open="lightbox-artwork" data-lb-index="0" aria-label="View {{ artwork.title }} full screen">
+            {% dither_image primary.asset alt=artwork.title priority=True placeholder=artwork.is_placeholder %}
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if artwork.description %}
+      <div class="split detail-block">
+        <div class="split__aside"><p class="meta">// DESCRIPTION</p></div>
+        <div class="split__main"><div class="body-prose">{{ artwork.description|linebreaks }}</div></div>
+      </div>
+    {% endif %}
+
+    {% if related %}
+      <div class="section-marker detail-block">
+        <span class="meta"><span class="meta__index">// MORE IN</span><span class="meta__sep"> — </span><span class="meta__label">{{ artwork.category.name|upper }}</span></span>
+        <span class="section-marker__rule"></span>
+      </div>
+      <div class="editorial-run">
+        {% for r in related %}
+          <a class="card" href="{{ r.get_absolute_url }}">
+            <span class="card__hairline"></span>
+            {% with rp=r.primary_image %}
+              {% if rp %}{% dither_image rp.asset alt=r.title sizes="(max-width:768px) 100vw, 33vw" placeholder=r.is_placeholder %}{% endif %}
+            {% endwith %}
+            <div class="card__body"><h2 class="card__title">{{ r.title }}</h2></div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  {% include "components/lightbox.html" with uid="artwork" items=lightbox_items only %}
+  {% endwith %}
+{% endblock %}

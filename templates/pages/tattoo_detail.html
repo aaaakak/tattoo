@@ -1,0 +1,108 @@
+{% extends "base/base.html" %}
+{% block content %}
+  {% with primary=tattoo.primary_image %}
+  <section class="section container">
+    <p class="meta" style="margin-bottom: var(--space-4)">
+      <a href="{% url 'tattoos:list' %}">← ALL TATTOOS</a>
+    </p>
+
+    <div class="split">
+      <div class="split__aside">
+        <h1 class="title" style="margin-bottom: var(--space-3)">{{ tattoo.title }}</h1>
+
+        {% if tattoo.is_placeholder %}
+          <p class="phase-note" style="margin-bottom: var(--space-3)">
+            DEMONSTRATION CONTENT — generated sample artwork, not a real tattoo performed
+            by the artist. It shows the layout with realistic imagery.
+          </p>
+        {% endif %}
+
+        <dl class="meta-list">
+          {% if tattoo.style_names %}
+            <dt>STYLE</dt><dd>{% for s in tattoo.styles.all %}<a href="{{ s.get_absolute_url }}">{{ s.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
+          {% endif %}
+          {% if tattoo.placement %}<dt>PLACEMENT</dt><dd>{{ tattoo.placement }}</dd>{% endif %}
+          {% if tattoo.size_cm %}<dt>SIZE</dt><dd>{{ tattoo.size_cm }}</dd>{% endif %}
+          {% if tattoo.duration_minutes %}<dt>SESSION</dt><dd>{{ tattoo.duration_minutes }} MIN</dd>{% endif %}
+          <dt>COLOUR</dt><dd>{% if tattoo.is_color %}COLOUR{% else %}BLACK &amp; GREY{% endif %}</dd>
+          {% if tattoo.session_date %}<dt>DATE</dt><dd>{{ tattoo.session_date|date:"Y" }}</dd>{% endif %}
+          {% if tattoo.price_from %}
+            <dt>FROM</dt><dd>{{ tattoo.price_from|money:tattoo.currency }}</dd>
+          {% endif %}
+        </dl>
+
+        {% if booking_open %}
+          <p style="margin-top: var(--space-4)">
+            <a class="btn btn--primary" href="{% url 'booking:create' %}?style={{ tattoo.styles.first.slug|default:'' }}">BOOK A SIMILAR PIECE</a>
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="split__main">
+        {% if primary %}
+          <button class="dither-trigger" data-lb-open="lightbox-tattoo" data-lb-index="0" aria-label="View {{ tattoo.title }} full screen">
+            {% dither_image primary.asset alt=tattoo.title priority=True placeholder=tattoo.is_placeholder %}
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if tattoo.description %}
+      <div class="split detail-block">
+        <div class="split__aside"><p class="meta">// DESCRIPTION</p></div>
+        <div class="split__main"><div class="body-prose">{{ tattoo.description|linebreaks }}</div></div>
+      </div>
+    {% endif %}
+
+    {% if tattoo.artist_notes %}
+      <div class="split detail-block">
+        <div class="split__aside"><p class="meta">// ARTIST NOTES</p></div>
+        <div class="split__main">
+          <div class="accordion__item">
+            <button class="accordion__trigger" aria-expanded="false" data-accordion-trigger>
+              <span class="meta">READ NOTES</span><span class="accordion__icon">+</span>
+            </button>
+            <div class="accordion__panel" hidden>
+              <div class="body-prose">{{ tattoo.artist_notes|linebreaks }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if gallery_images|length > 1 %}
+      <div class="section-marker detail-block">
+        <span class="meta"><span class="meta__index">// PLATES</span><span class="meta__sep"> — </span><span class="meta__label">{{ gallery_images|length }} IMAGES</span></span>
+        <span class="section-marker__rule"></span>
+      </div>
+      <div class="editorial-run">
+        {% for im in gallery_images %}
+          <button class="dither-trigger" data-lb-open="lightbox-tattoo" data-lb-index="{{ forloop.counter0 }}" aria-label="View image {{ forloop.counter }}">
+            {% dither_image im.asset alt=im.caption|default:tattoo.title sizes="(max-width:768px) 100vw, 33vw" %}
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if related %}
+      <div class="section-marker detail-block">
+        <span class="meta"><span class="meta__index">// RELATED</span><span class="meta__sep"> — </span><span class="meta__label">SIMILAR WORK</span></span>
+        <span class="section-marker__rule"></span>
+      </div>
+      <div class="editorial-run">
+        {% for r in related %}
+          <a class="card" href="{{ r.get_absolute_url }}">
+            <span class="card__hairline"></span>
+            {% with rp=r.primary_image %}
+              {% if rp %}{% dither_image rp.asset alt=r.title sizes="(max-width:768px) 100vw, 33vw" placeholder=r.is_placeholder %}{% endif %}
+            {% endwith %}
+            <div class="card__body"><h2 class="card__title">{{ r.title }}</h2></div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  {% include "components/lightbox.html" with uid="tattoo" items=lightbox_items only %}
+  {% endwith %}
+{% endblock %}

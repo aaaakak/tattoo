@@ -1,0 +1,59 @@
+{% load static %}
+{% comment %}
+Head partial — the metadata system.
+
+All values come from the `meta_*` context keys assembled by services/seo.build_context,
+so no template invents its own title or description. Falls back gracefully when a view
+does not supply metadata (the site defaults are used).
+{% endcomment %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>{{ meta_title|default:site.site_name }}</title>
+<meta name="description" content="{{ meta_description|default:'' }}">
+
+{% if meta_canonical %}<link rel="canonical" href="{{ meta_canonical }}">{% endif %}
+{% if meta_robots %}<meta name="robots" content="{{ meta_robots }}">{% endif %}
+
+{# --- OpenGraph -------------------------------------------------------------- #}
+<meta property="og:type" content="{{ meta_og_type|default:'website' }}">
+<meta property="og:site_name" content="{{ meta_site_name|default:'TattoWeb' }}">
+<meta property="og:title" content="{{ meta_title|default:'' }}">
+{% if meta_description %}<meta property="og:description" content="{{ meta_description }}">{% endif %}
+{% if meta_canonical %}<meta property="og:url" content="{{ meta_canonical }}">{% endif %}
+{% if meta_og_image %}
+  <meta property="og:image" content="{{ meta_og_image }}">
+  <meta property="og:image:width" content="{{ meta_og_image_width }}">
+  <meta property="og:image:height" content="{{ meta_og_image_height }}">
+{% endif %}
+
+{# --- Twitter / X ------------------------------------------------------------ #}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ meta_title|default:'' }}">
+{% if meta_description %}<meta name="twitter:description" content="{{ meta_description }}">{% endif %}
+{% if meta_og_image %}<meta name="twitter:image" content="{{ meta_og_image }}">{% endif %}
+
+{# --- Structured data -------------------------------------------------------- #}
+{% for schema in meta_structured_data %}
+<script type="application/ld+json">{{ schema|json_script_safe }}</script>
+{% endfor %}
+
+{% comment %}
+  Fonts. Anton: ultra-condensed display. Playfair Display: the condensed editorial serif
+  voice. Inter: body. JetBrains Mono: all technical metadata.
+{% endcomment %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+
+{% comment %}
+CSS load order matters — tokens first, then base, layout, components, pages.
+?v= busts the browser cache when a stylesheet changes.
+{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}?v={{ static_version }}">
+<link rel="stylesheet" href="{% static 'css/base.css' %}?v={{ static_version }}">
+<link rel="stylesheet" href="{% static 'css/layout.css' %}?v={{ static_version }}">
+<link rel="stylesheet" href="{% static 'css/components.css' %}?v={{ static_version }}">
+<link rel="stylesheet" href="{% static 'css/pages.css' %}?v={{ static_version }}">
+
+{% block extra_css %}{% endblock %}

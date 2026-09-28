@@ -1,0 +1,31 @@
+{% comment %}
+Fullscreen image viewer.
+
+Contract: items (list of {url, dither, title, meta, href, alt, ratio}), uid
+
+The markup is always present; lightbox.js activates it. With JavaScript disabled the
+trigger images remain ordinary links to their detail pages, so nothing is lost.
+{% endcomment %}
+{% if items %}
+<div class="lightbox" id="lightbox-{{ uid|default:'main' }}" hidden
+     role="dialog" aria-modal="true" aria-label="Image viewer">
+  <div class="lightbox__chrome">
+    <span class="lightbox__counter meta" data-lb-counter>01 / {{ items|length }}</span>
+    <button class="lightbox__close meta" data-lb-close aria-label="Close viewer">CLOSE ✕</button>
+  </div>
+
+  <div class="lightbox__stage">
+    <button class="lightbox__nav lightbox__nav--prev" data-lb-prev aria-label="Previous image">←</button>
+    <figure class="lightbox__figure">
+      <img data-lb-image src="" alt="">
+      <figcaption class="lightbox__caption">
+        <span class="meta" data-lb-title></span>
+        <span class="meta" data-lb-meta></span>
+      </figcaption>
+    </figure>
+    <button class="lightbox__nav lightbox__nav--next" data-lb-next aria-label="Next image">→</button>
+  </div>
+
+  <script type="application/json" data-lb-items>{{ items|json_script_safe }}</script>
+</div>
+{% endif %}

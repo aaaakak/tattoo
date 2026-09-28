@@ -1,0 +1,45 @@
+{% comment %}
+Site footer: the artist name, a mono contact block, social links, and the
+"// END OF DOCUMENT" marker — a small technical-signature device taken from the
+references' mono utility layer. All content is CMS-driven.
+{% endcomment %}
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+
+      <div>
+        <p class="display display--m">{{ artist.display_name|default:"STUDIO NAME" }}</p>
+        <p class="meta">{% section_marker "END" "THANK YOU FOR LOOKING" %}</p>
+      </div>
+
+      <div>
+        <p class="meta">// CONTACT</p>
+        <dl class="meta-list">
+          {% if site.contact_email %}<dt>EMAIL</dt><dd><a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a></dd>{% endif %}
+          {% if site.contact_phone %}<dt>PHONE</dt><dd>{{ site.contact_phone }}</dd>{% endif %}
+          {% if artist.location %}<dt>LOCATION</dt><dd>{{ artist.location }}</dd>{% endif %}
+        </dl>
+      </div>
+
+      <div>
+        <p class="meta">// ELSEWHERE</p>
+        <dl class="meta-list">
+          {% for link in social_links %}
+            <dt>{{ link.get_platform_display }}</dt>
+            <dd>
+              {% if link.url %}<a href="{{ link.url }}" rel="me noopener" target="_blank">{{ link.label }}</a>
+              {% else %}{{ link.label }}{% endif %}
+            </dd>
+          {% empty %}
+            <dt>SOCIAL</dt><dd>—</dd>
+          {% endfor %}
+        </dl>
+      </div>
+
+    </div>
+
+    <div class="site-footer__end">
+      <p class="meta">// END OF DOCUMENT — {{ site.site_name|default:"TATTOWEB" }}</p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,446 @@
+/* ==========================================================================
+   COMPONENTS — the visual contract. See docs/components.md.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DITHER IMAGE — the core component of the entire site.
+   Two stacked layers: full-fidelity underneath, dithered overlay on top.
+   The dithered layer resolves away on hover/focus, revealing the artwork over
+   420ms. Both variants are PRE-GENERATED at upload (zero runtime CPU), and with
+   JS off everything simply renders resolved.
+   -------------------------------------------------------------------------- */
+.dither {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-void-2);
+  aspect-ratio: var(--ratio, 4 / 5);
+}
+.dither__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity var(--dur-base) var(--ease-out),
+              transform var(--dur-slow) var(--ease-out);
+}
+.dither__img--full { opacity: 1; }
+.dither__img--dither {
+  opacity: 0;
+  image-rendering: pixelated;
+  filter: contrast(1.1);
+}
+/* Before JS confirms the dither derivative exists, show the full image. */
+.dither:not([data-dither-ready="true"]) .dither__img--dither { opacity: 0; }
+.dither[data-dither-ready="true"] .dither__img--full { opacity: 0; }
+.dither[data-dither-ready="true"] .dither__img--dither { opacity: 1; }
+
+.dither:hover .dither__img--full,
+.dither:focus-within .dither__img--full,
+.dither[data-resolved="true"] .dither__img--full { opacity: 1; }
+.dither:hover .dither__img--dither,
+.dither:focus-within .dither__img--dither,
+.dither[data-resolved="true"] .dither__img--dither { opacity: 0; }
+
+.dither:hover .dither__img { transform: scale(1.02); }
+
+/* Missing dither derivative: degrade to full image, never a broken img. */
+.dither[data-dither-missing="true"] .dither__img--dither { display: none; }
+.dither[data-dither-missing="true"] .dither__img--full { opacity: 1; }
+
+/* --------------------------------------------------------------------------
+   ARTWORK CARD — image, mono index, title, hover metadata
+   -------------------------------------------------------------------------- */
+.card { position: relative; display: block; }
+.card__index {
+  position: absolute;
+  top: var(--space-2); left: var(--space-2);
+  z-index: 2;
+  color: var(--c-ink-white);
+}
+.card__hairline {
+  position: absolute;
+  top: 0; left: 0;
+  height: 1px; width: 0;
+  background: var(--c-cobalt);
+  z-index: 2;
+  transition: width var(--dur-fast) var(--ease-out);
+}
+.card:hover .card__hairline,
+.card:focus-visible .card__hairline { width: 100%; }
+
+.card__body { padding-top: var(--space-2); }
+.card__title {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-1);
+  color: var(--c-ink-white);
+}
+
+/* Hover metadata: slides up 8px and fades in. Restrained, purposeful. */
+.card__meta {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+.card:hover .card__meta,
+.card:focus-visible .card__meta { opacity: 1; transform: translateY(0); }
+
+/* --------------------------------------------------------------------------
+   BUTTONS — 0 radius, hairline or solid cobalt. One cobalt CTA per viewport.
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+  cursor: pointer;
+}
+.btn--primary { background: var(--c-cobalt); color: #fff; border-color: var(--c-cobalt); }
+.btn--primary:hover { background: var(--c-cobalt-deep); border-color: var(--c-cobalt-deep); }
+.btn--ghost { border-color: var(--c-hairline-2); color: var(--c-ink-white); }
+.btn--ghost:hover { border-color: var(--c-cobalt); color: var(--c-ink-white); }
+.btn--quiet { color: var(--c-ink-mute); padding-inline: 0; }
+.btn--quiet:hover { color: var(--c-ink-white); }
+
+/* --------------------------------------------------------------------------
+   FILTER RAIL — real links, mono chips, shareable and indexable
+   -------------------------------------------------------------------------- */
+.filter-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-5);
+}
+.chip {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border);
+  border-radius: var(--radius);
+  color: var(--c-ink-mute);
+  transition: color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.chip:hover { color: var(--c-ink-white); border-color: var(--c-hairline-2); }
+.chip[aria-pressed="true"], .chip--active {
+  border-color: var(--c-cobalt);
+  color: var(--c-ink-white);
+}
+
+/* --------------------------------------------------------------------------
+   PILLAR FRAME — reference 4's flanking cobalt bars. Max twice per page.
+   -------------------------------------------------------------------------- */
+.pillar-frame { position: relative; }
+.pillar-frame::before,
+.pillar-frame::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 8px;
+  background: var(--c-cobalt-deep);
+}
+.pillar-frame::before { left: 0; }
+.pillar-frame::after { right: 0; }
+
+/* --------------------------------------------------------------------------
+   STAT BLOCK — the 10+ / 1200+ / 08 / 01 row
+   -------------------------------------------------------------------------- */
+.stat { display: flex; flex-direction: column; gap: var(--space-1); }
+.stat__value {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-m);
+  line-height: 1;
+  letter-spacing: var(--ls-display);
+  color: var(--c-ink-white);
+}
+.stat__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-ink-dim);
+}
+
+/* --------------------------------------------------------------------------
+   HERO
+   -------------------------------------------------------------------------- */
+.hero {
+  position: relative;
+  min-height: 92svh;
+  display: grid;
+  align-items: end;
+  padding-block: var(--space-7);
+  overflow: hidden;
+}
+.hero__media { position: absolute; inset: 0; z-index: 0; }
+.hero__media img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+.hero__scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(5,5,7,0.2) 0%, rgba(5,5,7,0.95) 100%);
+}
+.hero__content { position: relative; z-index: 2; }
+/* Frame-breakout: display type is permitted to escape its container (reference 3). */
+.hero__statement { margin-block: var(--space-3) var(--space-4); }
+.hero__kicker { margin-bottom: var(--space-2); }
+.hero__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.hero__meta-rail {
+  position: absolute;
+  right: var(--gutter);
+  bottom: var(--space-7);
+  writing-mode: vertical-rl;
+  z-index: 2;
+}
+
+/* Line-mask wrapper for the display reveal */
+.line-mask { display: block; overflow: hidden; }
+.line-mask > span {
+  display: block;
+  transform: translateY(105%);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+[data-revealed="true"] .line-mask > span { transform: translateY(0); }
+
+/* --------------------------------------------------------------------------
+   FORMS
+   -------------------------------------------------------------------------- */
+.field { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-3); }
+.field__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-ink-dim);
+}
+.field__input,
+.field__select,
+.field__textarea {
+  background: var(--c-void-2);
+  border: var(--border);
+  border-radius: var(--radius-input);
+  padding: var(--space-2);
+  color: var(--c-ink-white);
+  width: 100%;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.field__input:focus,
+.field__select:focus,
+.field__textarea:focus {
+  border-color: var(--c-cobalt);
+  outline: none;
+}
+.field__help { font-size: var(--fs-small); color: var(--c-ink-dim); }
+.field__error { font-family: var(--font-mono); font-size: var(--fs-meta);
+               letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--c-error); }
+
+/* --------------------------------------------------------------------------
+   STATUS PILLS
+   -------------------------------------------------------------------------- */
+.pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  padding: 2px var(--space-1);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+}
+
+/* --------------------------------------------------------------------------
+   ACCORDION — the minimal + affordance from reference 4
+   -------------------------------------------------------------------------- */
+.accordion__item { border-top: var(--border); }
+.accordion__trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: var(--space-3);
+  text-align: left;
+  color: var(--c-ink-white);
+}
+.accordion__icon {
+  font-family: var(--font-mono);
+  color: var(--c-cobalt-hi);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.accordion__trigger[aria-expanded="true"] .accordion__icon { transform: rotate(45deg); }
+.accordion__panel { padding-bottom: var(--space-3); }
+.accordion__panel[hidden] { display: none; }
+
+/* --------------------------------------------------------------------------
+   EMPTY STATE — designed, not an afterthought
+   -------------------------------------------------------------------------- */
+.empty-state {
+  border: var(--border);
+  padding: var(--space-6);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   PLACEHOLDER NOTICE
+   Demonstration content must be visibly distinguishable from real work.
+   -------------------------------------------------------------------------- */
+.dither__notice {
+  position: absolute;
+  left: var(--space-1);
+  bottom: var(--space-1);
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem; /* 9px */
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-ink-mute);
+  background: rgba(5, 5, 7, 0.82);
+  border: 1px solid var(--c-hairline);
+  padding: 2px var(--space-1);
+  pointer-events: none;
+}
+
+.dither--empty {
+  display: grid;
+  place-items: center;
+  border: var(--border);
+  aspect-ratio: var(--ratio, 4 / 5);
+}
+
+/* Paper-mode dither: the plate inverts for light sections. */
+.dither--paper .dither__img--dither { filter: invert(1) contrast(1.05); }
+
+/* ==========================================================================
+   MASONRY — editorial asymmetric grid.
+   Column flow with explicit intrinsic ratios, so nothing reflows on load and no
+   JavaScript layout library is needed.
+   ========================================================================== */
+.masonry { column-count: 3; column-gap: var(--col-gap); }
+.masonry__item {
+  break-inside: avoid;
+  margin: 0 0 var(--col-gap);
+  display: block;
+}
+.masonry__item figcaption { margin-top: var(--space-1); }
+.masonry__item[style*="--span: 2"] { column-span: all; }
+
+@media (max-width: 1024px) { .masonry { column-count: 2; } }
+@media (max-width: 768px)  { .masonry { column-count: 1; }
+                             .masonry__item[style*="--span: 2"] { column-span: none; } }
+
+/* ==========================================================================
+   FILTER GROUPS
+   ========================================================================== */
+.filter-group { margin-bottom: var(--space-5); }
+.filter-group__label { margin: var(--space-3) 0 var(--space-1); }
+.filter-rail { margin-bottom: 0; }
+.chip__count { color: var(--c-ink-dim); margin-left: 4px; }
+
+.search-form { display: flex; gap: var(--space-1); margin-top: var(--space-3); max-width: 520px; }
+.search-form .field__input { flex: 1; }
+
+/* ==========================================================================
+   PAGINATION
+   ========================================================================== */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-2); margin-top: var(--space-6);
+  padding-top: var(--space-3); border-top: var(--border);
+}
+.pagination__state { color: var(--c-ink-dim); }
+
+/* ==========================================================================
+   LIGHTBOX — fullscreen viewer. Glass is permitted here (second of two surfaces).
+   ========================================================================== */
+.lightbox {
+  position: fixed; inset: 0; z-index: var(--z-lightbox);
+  background: rgba(5, 5, 7, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex; flex-direction: column;
+}
+.lightbox[hidden] { display: none; }
+.lightbox__chrome {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--space-3) var(--gutter);
+  border-bottom: 1px solid rgba(237, 234, 228, 0.12);
+}
+.lightbox__close { color: var(--c-ink-white); background: none; border: none; cursor: pointer; }
+.lightbox__stage {
+  flex: 1; display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center; gap: var(--space-2);
+  padding: var(--space-3);
+  min-height: 0;
+}
+.lightbox__figure {
+  margin: 0; display: flex; flex-direction: column;
+  align-items: center; gap: var(--space-2); min-height: 0; height: 100%;
+  justify-content: center;
+}
+.lightbox__figure img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; background: transparent;
+}
+.lightbox__caption { display: flex; gap: var(--space-3); }
+.lightbox__nav {
+  font-size: 1.5rem; color: var(--c-ink-mute);
+  background: none; border: none; cursor: pointer;
+  padding: var(--space-3); transition: color var(--dur-fast) var(--ease-out);
+}
+.lightbox__nav:hover { color: var(--c-ink-white); }
+body.lightbox-open { overflow: hidden; }
+
+/* Triggers: the dither figure wrapped in a button. Must not look like a button. */
+.dither-trigger { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; text-align: left; }
+
+@media (max-width: 768px) {
+  .lightbox__stage { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .lightbox__nav--prev, .lightbox__nav--next { display: none; }
+}
+
+/* ==========================================================================
+   FORMS — fieldsets, errors, honeypot
+   ========================================================================== */
+.form-fieldset { border: 0; padding: 0; margin: 0 0 var(--space-5); }
+.form-fieldset legend { padding: 0; margin-bottom: var(--space-3); color: var(--c-ink-dim); }
+.form-errors { border-left: 2px solid var(--c-error); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-3); background: var(--c-void-2); }
+.field--error .field__input,
+.field--error .field__select,
+.field--error .field__textarea { border-color: var(--c-error); }
+.field--error .field__label { color: var(--c-error); }
+
+/* Honeypot: visually and programmatically hidden from humans, present for bots.
+   Not display:none, which some bots detect. */
+.honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.honeypot input { tabindex: -1; }
+
+.reference-code {
+  font-family: var(--font-mono); font-size: 1.75rem; letter-spacing: 0.16em;
+  color: var(--c-ink-white); margin: var(--space-1) 0;
+}
+
+.process-list { list-style: none; padding: 0; margin: 0; }
+.process-list li { display: grid; grid-template-columns: 3rem 1fr; gap: var(--space-2); padding: var(--space-2) 0; border-top: var(--border); }
+.process-list .meta { color: var(--c-cobalt-hi); }
+
+/* ==========================================================================
+   DETAIL PAGE SPACING
+   ========================================================================== */
+.detail-block { margin-top: var(--space-6); }

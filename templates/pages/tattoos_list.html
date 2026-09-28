@@ -1,0 +1,82 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <div class="section-marker">
+      <span class="meta"><span class="meta__index">// PORTFOLIO</span><span class="meta__sep"> — </span><span class="meta__label">TATTOOS</span></span>
+      <span class="section-marker__rule"></span>
+      <span class="meta">{{ paginator.count|pluralize_count }} PIECE{{ paginator.count|pluralize|upper }}</span>
+    </div>
+
+    <h1 class="display display--l" style="margin-bottom: var(--space-5)">TATTOOS</h1>
+
+    {# Filters: real links. Each combination is a shareable, indexable URL. #}
+    <div class="filter-group">
+      <p class="meta filter-group__label">// STYLE</p>
+      <nav class="filter-rail" aria-label="Filter by style">
+        <a class="chip{% if not active_filters.style %} chip--active{% endif %}" href="{% url 'tattoos:list' %}">ALL</a>
+        {% for s in styles %}
+          <a class="chip{% if active_filters.style == s.slug %} chip--active{% endif %}"
+             href="?style={{ s.slug }}">{{ s.name }} <span class="chip__count">{{ s.piece_count|pluralize_count }}</span></a>
+        {% endfor %}
+      </nav>
+
+      {% if placements %}
+      <p class="meta filter-group__label">// PLACEMENT</p>
+      <nav class="filter-rail" aria-label="Filter by placement">
+        <a class="chip{% if not active_filters.placement %} chip--active{% endif %}" href="?{% if active_filters.style %}style={{ active_filters.style }}{% endif %}">ALL</a>
+        {% for p in placements %}
+          <a class="chip{% if active_filters.placement == p %} chip--active{% endif %}"
+             href="?placement={{ p|urlencode }}{% if active_filters.style %}&style={{ active_filters.style }}{% endif %}">{{ p }}</a>
+        {% endfor %}
+      </nav>
+      {% endif %}
+
+      <p class="meta filter-group__label">// COLOUR</p>
+      <nav class="filter-rail" aria-label="Filter by colour">
+        <a class="chip{% if not active_filters.colour %} chip--active{% endif %}" href="?{% if active_filters.style %}style={{ active_filters.style }}{% endif %}">ALL</a>
+        <a class="chip{% if active_filters.colour == 'black' %} chip--active{% endif %}" href="?colour=black{% if active_filters.style %}&style={{ active_filters.style }}{% endif %}">BLACK &amp; GREY</a>
+        <a class="chip{% if active_filters.colour == 'colour' %} chip--active{% endif %}" href="?colour=colour{% if active_filters.style %}&style={{ active_filters.style }}{% endif %}">COLOUR</a>
+      </nav>
+
+      <form class="search-form" method="get" role="search">
+        {% if active_filters.style %}<input type="hidden" name="style" value="{{ active_filters.style }}">{% endif %}
+        <label class="visually-hidden" for="tattoo-q">Search portfolio</label>
+        <input class="field__input" type="search" id="tattoo-q" name="q" value="{{ active_filters.q }}"
+               placeholder="Search titles, placements, tags" autocomplete="off">
+        <button class="btn btn--ghost" type="submit">SEARCH</button>
+      </form>
+    </div>
+
+    <div class="editorial-run">
+      {% for tattoo in tattoos %}
+        {% with primary=tattoo.primary_image %}
+          {% if primary %}
+            {% dither_image primary.asset as _img %}
+          {% endif %}
+          <a class="card" href="{{ tattoo.get_absolute_url }}">
+            <span class="card__hairline"></span>
+            <span class="card__index meta">// {{ forloop.counter|pluralize_count }}</span>
+            {% if primary %}
+              {% dither_image primary.asset alt=tattoo.title sizes="(max-width:768px) 100vw, 33vw" placeholder=tattoo.is_placeholder %}
+            {% else %}
+              <div class="dither dither--empty"><span class="meta">NO IMAGE</span></div>
+            {% endif %}
+            <div class="card__body">
+              <h2 class="card__title">{{ tattoo.title }}</h2>
+              <dl class="meta-list card__meta">
+                {% if tattoo.placement %}<dt>PLACEMENT</dt><dd>{{ tattoo.placement }}</dd>{% endif %}
+                {% if tattoo.size_cm %}<dt>SIZE</dt><dd>{{ tattoo.size_cm }}</dd>{% endif %}
+                {% if tattoo.style_names %}<dt>STYLE</dt><dd>{{ tattoo.style_names|join:", " }}</dd>{% endif %}
+                {% if tattoo.duration_minutes %}<dt>SESSION</dt><dd>{{ tattoo.duration_minutes }} MIN</dd>{% endif %}
+              </dl>
+            </div>
+          </a>
+        {% endwith %}
+      {% empty %}
+        {% include "components/empty_state.html" with marker="// 000 — NO WORK MATCHES" message="Try removing a filter, or browse the full portfolio." cta_label="VIEW ALL TATTOOS" cta_url="/tattoos/" only %}
+      {% endfor %}
+    </div>
+
+    {% include "components/pagination.html" %}
+  </section>
+{% endblock %}

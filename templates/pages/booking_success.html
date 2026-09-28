@@ -1,0 +1,29 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container" style="min-height: 60svh; display: flex; flex-direction: column; justify-content: center">
+    <p class="meta">// CONFIRMATION</p>
+    <h1 class="display display--l" style="margin: var(--space-3) 0">REQUEST RECEIVED</h1>
+
+    <div class="split">
+      <div class="split__aside">
+        <p class="meta">// YOUR REFERENCE</p>
+        <p class="reference-code">{{ reference }}</p>
+        <p class="meta">Quote this in any correspondence.</p>
+      </div>
+      <div class="split__main">
+        <div class="body-prose">
+          <p>What happens next:</p>
+          <ol class="process-list">
+            <li><span class="meta">01</span> The studio reviews the request and any reference images.</li>
+            <li><span class="meta">02</span> You are contacted by email to discuss the design and confirm a price.</li>
+            <li><span class="meta">03</span> A date and time are agreed from the available slots.</li>
+            <li><span class="meta">04</span> The design is finalised before the session.</li>
+          </ol>
+        </div>
+        <p style="margin-top: var(--space-4)">
+          <a class="btn btn--ghost" href="{% url 'tattoos:list' %}">BROWSE THE PORTFOLIO</a>
+        </p>
+      </div>
+    </div>
+  </section>
+{% endblock %}

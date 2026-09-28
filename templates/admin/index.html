@@ -1,0 +1,120 @@
+{% extends "admin/index.html" %}
+{% comment %}
+Custom admin index: a working dashboard above the model list.
+
+The default Django index is an alphabetical list of model names, which tells the artist
+nothing about what needs attention today. This surfaces the queue instead: open bookings,
+unread messages, low stock, drafts.
+
+Styling is injected rather than overriding Django's admin CSS wholesale, so this keeps
+working across Django versions and does not fight the existing admin theme.
+{% endcomment %}
+
+{% block content %}
+<div id="tw-dashboard">
+
+  <style>
+    #tw-dashboard { margin-bottom: 28px; }
+    #tw-dashboard .tw-stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    #tw-dashboard .tw-stat {
+      border: 1px solid var(--hairline-color, #e0e0e0);
+      padding: 14px 16px; background: var(--body-bg, #fff);
+    }
+    #tw-dashboard .tw-stat__value {
+      font-size: 26px; font-weight: 600; line-height: 1; margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    #tw-dashboard .tw-stat__label {
+      font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+      opacity: .65;
+    }
+    #tw-dashboard h2.tw-head {
+      font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+      opacity: .65; margin: 0 0 10px; font-weight: 600;
+    }
+    #tw-dashboard .tw-panel { margin-bottom: 22px; }
+    #tw-dashboard table.tw-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #tw-dashboard table.tw-table th {
+      text-align: left; font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+      opacity: .55; padding: 6px 8px; border-bottom: 1px solid var(--hairline-color, #e0e0e0);
+      font-weight: 600;
+    }
+    #tw-dashboard table.tw-table td {
+      padding: 7px 8px; border-bottom: 1px solid var(--hairline-color, #f0f0f0);
+      vertical-align: top;
+    }
+    #tw-dashboard code {
+      font-size: 11px; background: var(--darkened-bg, #f6f6f6); padding: 1px 5px;
+    }
+    #tw-dashboard .tw-none { opacity: .55; font-size: 12px; padding: 6px 0; }
+  </style>
+
+  <div class="tw-stats">
+    {% for s in stats %}
+      <div class="tw-stat">
+        <div class="tw-stat__value">{{ s.value }}</div>
+        <div class="tw-stat__label">{{ s.label }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if open_bookings %}
+  <div class="tw-panel">
+    <h2 class="tw-head">Open bookings</h2>
+    <table class="tw-table">
+      <thead>
+        <tr><th>Reference</th><th>Client</th><th>Style</th><th>Placement</th><th>Status</th><th>Received</th></tr>
+      </thead>
+      <tbody>
+        {% for b in open_bookings %}
+        <tr>
+          <td><a href="{% url 'admin:booking_booking_change' b.pk %}"><code>{{ b.reference }}</code></a></td>
+          <td>{{ b.client.name }}</td>
+          <td>{{ b.style.name|default:"—" }}</td>
+          <td>{{ b.placement|default:"—" }}</td>
+          <td>{{ b.get_status_display }}</td>
+          <td>{{ b.created_at|date:"Y-m-d" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if low_stock %}
+  <div class="tw-panel">
+    <h2 class="tw-head">Low stock</h2>
+    <table class="tw-table">
+      <thead><tr><th>Product</th><th>Remaining</th><th>Type</th></tr></thead>
+      <tbody>
+        {% for p in low_stock %}
+        <tr>
+          <td><a href="{% url 'admin:shop_product_change' p.pk %}">{{ p.name }}</a></td>
+          <td>{{ p.stock }}</td>
+          <td>{{ p.get_product_type_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if draft_count %}
+    <p class="tw-none">{{ draft_count }} item{{ draft_count|pluralize }} still in draft. Drafts are not visible on the site.</p>
+  {% endif %}
+
+</div>
+
+{% comment %}
+CRITICAL: {{ block.super }} renders Django's own app/model list.
+
+Without it, overriding {% block content %} DELETES the entire navigation, leaving the
+artist on a dashboard with no way to reach any model. This was a real bug: the dashboard
+rendered its statistics correctly and the app list was silently absent, which looks like
+a styling issue but is a total loss of function.
+{% endcomment %}
+{{ block.super }}
+{% endblock %}

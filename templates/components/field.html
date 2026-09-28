@@ -1,0 +1,22 @@
+{% comment %}
+Form field. Mono label, hairline input, inline error, help text.
+
+Contract: field (a Django BoundField), availability_url (optional, date fields only).
+Pass with `only`.
+{% endcomment %}
+<div class="field{% if field.errors %} field--error{% endif %}">
+  <label class="field__label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+  {% if availability_url and field.name == "preferred_date" %}
+    {% comment %}
+      The date input carries its availability endpoint so modules/booking.js can
+      constrain it. Written into the widget via a wrapper attribute rather than by
+      rebuilding the widget, so the server-rendered field stays authoritative.
+    {% endcomment %}
+    <span data-availability-anchor data-availability-url="{{ availability_url }}" hidden></span>
+  {% endif %}
+  {{ field }}
+  {% if field.help_text %}<span class="field__help" id="{{ field.id_for_label }}-help">{{ field.help_text }}</span>{% endif %}
+  {% for error in field.errors %}
+    <span class="field__error" role="alert">{{ error }}</span>
+  {% endfor %}
+</div>

@@ -1,0 +1,28 @@
+{% load static %}<!doctype html>
+{% comment %}
+Document shell for the entire site. Block contract:
+  title, meta, body_class, content, extra_css, extra_js
+
+body class carries `page--<name>` and the theme, so page-level CSS is scoped rather
+than global. The grain overlay is mounted exactly once, here — never per component.
+{% endcomment %}
+<html lang="en">
+<head>
+  {% include "base/head.html" %}
+</head>
+<body class="page--{{ page_name|default:'default' }} theme--ink">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  {% include "base/header.html" %}
+
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "base/footer.html" %}
+  {% include "base/grain.html" %}
+
+  <script type="module" src="{% static 'js/main.js' %}?v={{ static_version }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

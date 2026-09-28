@@ -1,0 +1,16 @@
+{% comment %}
+Film-grain overlay. ONE instance for the whole document, fixed, pointer-events:none.
+
+Implemented as inline SVG feTurbulence so it costs no extra HTTP request and no image
+decode. Applied once globally rather than per-component — a per-component grain is the
+classic way this effect destroys scroll performance.
+{% endcomment %}
+<div class="grain" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+    <filter id="grain-filter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain-filter)"/>
+  </svg>
+</div>

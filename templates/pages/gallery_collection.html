@@ -1,0 +1,24 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <p class="meta" style="margin-bottom: var(--space-4)"><a href="{% url 'gallery:index' %}">← GALLERY</a></p>
+
+    <h1 class="display display--l">{{ collection.title }}</h1>
+    {% if collection.description %}
+      <div class="body-prose" style="margin-top: var(--space-3)">{{ collection.description|linebreaks }}</div>
+    {% endif %}
+
+    <div class="masonry" style="margin-top: var(--space-5)">
+      {% for gi in images %}
+        <figure class="masonry__item" style="--span: {{ gi.span }}">
+          {% dither_image gi.asset alt=gi.caption sizes="(max-width:768px) 100vw, 33vw" %}
+          {% if gi.caption %}<figcaption class="meta">{{ gi.caption }}</figcaption>{% endif %}
+        </figure>
+      {% empty %}
+        {% include "components/empty_state.html" with marker="// 000 — COLLECTION EMPTY" message="No images in this collection yet." only %}
+      {% endfor %}
+    </div>
+  </section>
+
+  {% include "components/lightbox.html" with uid="collection" items=lightbox_items only %}
+{% endblock %}

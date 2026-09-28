@@ -1,0 +1,67 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <section class="section container">
+    <p class="meta" style="margin-bottom: var(--space-4)"><a href="{% url 'shop:list' %}">← SHOP</a></p>
+
+    <div class="split">
+      <div class="split__aside">
+        <h1 class="title" style="margin-bottom: var(--space-3)">{{ product.name }}</h1>
+
+        <dl class="meta-list">
+          <dt>CATEGORY</dt><dd>{{ product.category.name }}</dd>
+          <dt>TYPE</dt><dd>{{ product.get_product_type_display|upper }}</dd>
+          <dt>PRICE</dt><dd>{{ product.price|money:product.currency }}</dd>
+          <dt>STATUS</dt><dd>{{ product.get_availability_display|upper }}</dd>
+          {% if product.stock is not None %}<dt>IN STOCK</dt><dd>{{ product.stock }}</dd>{% endif %}
+          {% if product.edition_info %}<dt>EDITION</dt><dd>{{ product.edition_info }}</dd>{% endif %}
+        </dl>
+
+        {% if product.is_orderable %}
+          {# No checkout provider is configured, so the honest CTA is an enquiry. #}
+          <p style="margin-top: var(--space-4)">
+            <a class="btn btn--primary" href="{% url 'contact:index' %}">ENQUIRE TO PURCHASE</a>
+          </p>
+          <p class="meta" style="margin-top: var(--space-2)">Checkout is not yet enabled. Enquiries are answered directly.</p>
+        {% else %}
+          <p style="margin-top: var(--space-4)"><span class="pill">{{ product.get_availability_display|upper }}</span></p>
+          <p class="meta" style="margin-top: var(--space-2)">This piece is not currently available for order.</p>
+        {% endif %}
+      </div>
+
+      <div class="split__main">
+        {% with primary=product.images.first %}
+          {% if primary %}
+            <button class="dither-trigger" data-lb-open="lightbox-product" data-lb-index="0" aria-label="View {{ product.name }} full screen">
+              {% dither_image primary.asset alt=product.name priority=True %}
+            </button>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+
+    {% if product.description %}
+      <div class="split detail-block">
+        <div class="split__aside"><p class="meta">// DESCRIPTION</p></div>
+        <div class="split__main"><div class="body-prose">{{ product.description|linebreaks }}</div></div>
+      </div>
+    {% endif %}
+
+    <div class="split detail-block">
+      <div class="split__aside"><p class="meta">// SHIPPING</p></div>
+      <div class="split__main">
+        <div class="accordion__item">
+          <button class="accordion__trigger" aria-expanded="false" data-accordion-trigger>
+            <span class="meta">SHIPPING &amp; RETURNS</span><span class="accordion__icon">+</span>
+          </button>
+          <div class="accordion__panel" hidden>
+            <div class="body-prose">
+              <p>Shipping details are configured by the studio. Prints are dispatched rolled in a rigid tube; originals are shipped framed or stretched depending on size.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% include "components/lightbox.html" with uid="product" items=lightbox_items only %}
+{% endblock %}
