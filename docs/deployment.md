@@ -242,13 +242,42 @@ connection budget.
 `pool_pre_ping=True` is kept: with `NullPool` a connection may have been closed upstream,
 and pre-ping turns that into a reconnect instead of an error.
 
-Django uses `CONN_MAX_AGE = 60` in production and the default `0` in development — 0 so
-schema changes are picked up immediately while developing, 60 so production does not redo a
-TLS and auth handshake on every request.
+### 3. No persistent connections on serverless
 
-`CONN_MAX_AGE` is set in `config/settings/prod.py`, **not** `base.py`. `base.py` cannot
-decide it: its `DEBUG` reflects `.env`, and `prod.py` overrides `DEBUG` only after `base`
-has run, so an `if not DEBUG` branch there is a silent no-op.
+Django's `CONN_MAX_AGE` is **0 in both environments** — connections open per request and
+close at the end of it.
+
+On a long-running server that looks wasteful, and Django's documentation is written with
+that model in mind. On Vercel it is the only correct setting, for four independent reasons,
+any one of which is sufficient:
+
+1. **Supavisor is the pooler.** Django's PostgreSQL notes state `CONN_MAX_AGE` must be `0`
+   when connection pooling is in use. The pooler owns reuse; client-side persistence is a
+   competing second layer.
+2. **Connection parameters are modified per connection.** Django's databases reference says
+   to disable persistent connections in that case, and this project pins the session
+   timezone on connect (`SET TIME ZONE 'UTC'`).
+3. **Suspended instances never expire the connection.** Django enforces the `CONN_MAX_AGE`
+   expiry at request boundaries. Vercel suspends an idle function instance in memory, where
+   no requests run, so the check never fires and the connection stays open until the
+   pooler's own timeout — minutes later. Vercel documents this as a leaked connection.
+4. **Deploys orphan connections.** Every deployment suspends the previous version's
+   instances permanently, and each one holds its connections until the pooler times them
+   out. Vercel notes Supabase caps concurrent pooler connections, so this spends real
+   budget.
+
+Where it is set matters. `CONN_MAX_AGE` lives in `config/settings/prod.py`, **not**
+`base.py`: `base.py` cannot decide it, because its `DEBUG` reflects `.env` and `prod.py`
+overrides `DEBUG` only after `base` has run — an `if not DEBUG` branch there would be a
+silent no-op. It is written explicitly as `= 0` rather than left to the default, so the
+intent is recorded and a future reader does not raise it again.
+
+Development is `0` as well, for a different reason: Django's development server creates a
+thread per request, which negates persistent connections entirely — its documentation says
+not to enable them there.
+
+Connection reuse is not lost by any of this. Supavisor pools server-side, which is exactly
+what the transaction pooler is for.
 
 ### Verifying the configuration
 

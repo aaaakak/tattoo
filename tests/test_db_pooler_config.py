@@ -221,7 +221,7 @@ def test_engine_can_initialize_without_a_database():
 # --------------------------------------------------------------------------------------
 @pytest.mark.parametrize(
     "module,conn_max_age",
-    [("config.settings.dev", "0"), ("config.settings.prod", "60")],
+    [("config.settings.dev", "0"), ("config.settings.prod", "0")],
 )
 def test_django_disables_prepared_statements(module, conn_max_age):
     """
@@ -231,8 +231,11 @@ def test_django_disables_prepared_statements(module, conn_max_age):
     `prepare_threshold` belongs there. Without it Django would fail against the pooler on
     the fifth execution of any repeated query.
 
-    `CONN_MAX_AGE` differs by environment on purpose: 0 in development so schema changes
-    are seen immediately, 60 in production to avoid a handshake per request.
+    `CONN_MAX_AGE` is 0 in BOTH environments, for different reasons. Development: the dev
+    server is threaded per request and Django's docs say not to enable persistent
+    connections there. Production: the deployment is serverless behind a pooler, and a
+    suspended Vercel instance never runs the request-boundary check that would expire the
+    connection, so a non-zero value leaks connections until the pooler times them out.
     """
     import secrets
 
@@ -258,6 +261,84 @@ def test_django_disables_prepared_statements(module, conn_max_age):
     )
     assert f"CMA {conn_max_age}" in out, (
         f"{module} should use CONN_MAX_AGE={conn_max_age}:\n{out[-400:]}"
+    )
+
+
+def test_production_disables_persistent_connections_for_serverless():
+    """
+    `CONN_MAX_AGE` must be 0 in production, and this is not a performance preference.
+
+    Django enforces the CONN_MAX_AGE expiry at request boundaries. Vercel suspends an idle
+    function instance in memory, where that check never runs, so a non-zero value leaves the
+    connection open until the pooler's own timeout -- minutes later. Vercel documents this as
+    a leaked connection, and notes Supabase caps concurrent pooler connections, so a deploy
+    that orphans the previous version's instances spends real pooler budget.
+
+    Django's own reference adds two more reasons that apply here: persistent connections
+    should be disabled when connection parameters are modified per connection (this project
+    pins the session timezone on connect), and the PostgreSQL notes require CONN_MAX_AGE 0
+    when a connection pooler is in use.
+
+    Asserted on the loaded settings rather than on the source text so that a comment
+    explaining the decision cannot satisfy it.
+    """
+    import secrets
+
+    code, out = _run(
+        "import django; django.setup();"
+        "from django.conf import settings;"
+        "print('CMA', settings.DATABASES['default']['CONN_MAX_AGE'])",
+        env_extra={
+            "DJANGO_SETTINGS_MODULE": "config.settings.prod",
+            "DJANGO_SECRET_KEY": secrets.token_urlsafe(60),
+            "ALLOWED_HOSTS": "example.com",
+        },
+    )
+    assert code == 0, out[-600:]
+    assert "CMA 0" in out, (
+        "CONN_MAX_AGE is not 0 in production. On Vercel this leaks pooler connections: a "
+        f"suspended instance never runs the expiry check.\n{out[-300:]}"
+    )
+
+
+def test_development_also_disables_persistent_connections():
+    """
+    Development is 0 too, for a different reason: Django's development server creates a
+    thread per request, which negates persistent connections entirely.
+    """
+    code, out = _run(
+        "import django; django.setup();"
+        "from django.conf import settings;"
+        "print('CMA', settings.DATABASES['default']['CONN_MAX_AGE'])",
+        env_extra={"DJANGO_SETTINGS_MODULE": "config.settings.dev",
+                   "DJANGO_SECRET_KEY": "x" * 60},
+    )
+    assert code == 0, out[-600:]
+    assert "CMA 0" in out, f"dev CONN_MAX_AGE should be 0:\n{out[-300:]}"
+
+
+def test_pooler_requirements_survive_the_conn_max_age_change():
+    """
+    The change must not have disturbed prepared-statement handling on either stack.
+
+    Regression guard for the specific risk that editing prod.py drops the
+    `prepare_threshold` applied in base.py.
+    """
+    import secrets
+
+    code, out = _run(
+        "import django; django.setup();"
+        "from django.conf import settings;"
+        "print('PREPARE', settings.DATABASES['default']['OPTIONS']['prepare_threshold'])",
+        env_extra={
+            "DJANGO_SETTINGS_MODULE": "config.settings.prod",
+            "DJANGO_SECRET_KEY": secrets.token_urlsafe(60),
+            "ALLOWED_HOSTS": "example.com",
+        },
+    )
+    assert code == 0, out[-600:]
+    assert "PREPARE None" in out, (
+        f"prepare_threshold was lost from the production settings:\n{out[-300:]}"
     )
 
 
