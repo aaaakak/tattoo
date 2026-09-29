@@ -44,7 +44,10 @@ ALLOWED_HOSTS = ["*"]
 # wrong, and it is recorded here so it is not repeated.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    # Must match prod.py: WhiteNoise serves the compressed variants, so the build has to
+    # generate them. Using a different storage here would collect files production cannot
+    # serve -- the failure this module already documents once for the manifest.
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }

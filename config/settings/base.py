@@ -113,6 +113,15 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise must sit immediately after SecurityMiddleware: it serves /static/ before
+    # any other middleware runs, so it short-circuits both the request and the response
+    # pipeline for static assets.
+    #
+    # It is present unconditionally, not only in production, because the Vercel catch-all
+    # rewrite routes /static/* into this service and Vercel's documented "routing finality"
+    # means it does not fall back to its own static handler once a service matches. Under
+    # DEBUG the dev server handles static first, so WhiteNoise is simply inert there.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

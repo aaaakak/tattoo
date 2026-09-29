@@ -25,6 +25,11 @@ dependencies = [
     "psycopg[binary]==3.2.*",
     # --- Images: derivatives + dither generation, no external thumbnail app ---
     "pillow==11.3.*",
+    # Serves /static/ from the Django process. Required in production because the Vercel
+    # catch-all rewrite routes /static/* into this service, and Vercel does not fall back
+    # to its own static handler once a service matches (documented routing finality).
+    # Vercel's Django guide lists WhiteNoise as compatible.
+    "whitenoise==6.11.*",
 ]
 
 [project.optional-dependencies]

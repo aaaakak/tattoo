@@ -76,5 +76,10 @@ CACHES = {
 # --- Static files served by the reverse proxy, never by Django ---
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"},
+    # WhiteNoise's storage subclasses ManifestStaticFilesStorage, so the content-hashed
+    # filenames that {% static %} resolves through staticfiles.json are preserved exactly.
+    # It adds gzip/brotli precompression on top, which is what gets served.
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
 }
