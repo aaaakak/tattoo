@@ -19,6 +19,7 @@ Nothing here weakens production.
 """
 
 from .base import *
+from .base import media_storage_config
 
 # A build must not need a real secret. This value is fixed, obviously non-production, and
 # used nowhere else -- it exists only so the settings module can import on a build machine.
@@ -43,7 +44,7 @@ ALLOWED_HOSTS = ["*"]
 # assumption that Vercel hashes and serves the collected files itself. The assumption was
 # wrong, and it is recorded here so it is not repeated.
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": media_storage_config(),
     # Must match prod.py: WhiteNoise serves the compressed variants, so the build has to
     # generate them. Using a different storage here would collect files production cannot
     # serve -- the failure this module already documents once for the manifest.

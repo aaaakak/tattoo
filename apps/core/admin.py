@@ -16,6 +16,30 @@ from .models import MediaAsset, SiteSettings, SocialLink, Tag
 
 @admin.register(MediaAsset)
 class MediaAssetAdmin(admin.ModelAdmin):
+    """
+    Internal storage table. The artist never needs it: uploading an image on an Artwork or
+    Tattoo calls `ingest_image`, which creates these rows and their derivatives.
+
+    Hidden from non-superusers so the CMS shows Artworks / Tattoos / Shop rather than
+    plumbing. Superusers keep access, because inspecting a rejected upload or a dither
+    threshold is a real debugging need.
+    """
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
     list_display = ("thumb", "kind", "variant_key", "dimensions", "size_kb", "dither_threshold", "created_at")
     list_filter = ("kind", "created_at")
     search_fields = ("alt_text", "file", "sha256")

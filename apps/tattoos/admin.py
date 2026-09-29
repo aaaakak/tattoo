@@ -16,7 +16,11 @@ from __future__ import annotations
 from django.contrib import admin
 from django.utils.html import format_html
 
-from apps.core.admin_mixins import PublishedAdminMixin, placeholder_column
+from apps.core.admin_mixins import (
+    PublishedAdminMixin,
+    SimpleImageUploadMixin,
+    placeholder_column,
+)
 
 from .models import Tattoo, TattooImage, TattooStyle
 
@@ -59,7 +63,7 @@ class TattooImageInline(admin.TabularInline):
     """
 
     model = TattooImage
-    extra = 1
+    extra = 0
     autocomplete_fields = ("asset",)
     fields = ("order", "asset", "thumbnail", "variant", "caption", "is_primary")
     readonly_fields = ("thumbnail",)
@@ -76,7 +80,13 @@ class TattooImageInline(admin.TabularInline):
 
 
 @admin.register(Tattoo)
-class TattooAdmin(PublishedAdminMixin, admin.ModelAdmin):
+class TattooAdmin(SimpleImageUploadMixin, PublishedAdminMixin, admin.ModelAdmin):
+    """Normal Django admin: fill the fields, drop in an image, save."""
+
+    image_rel_name = "images"
+    image_model = TattooImage
+    image_fk_name = "tattoo"
+    image_upload_label = "Tattoo image"
     list_display = (
         "thumb", "title", "style_list", "placement", "is_color",
         "placeholder_column", "is_featured", "status", "published_at",
@@ -148,12 +158,25 @@ class TattooAdmin(PublishedAdminMixin, admin.ModelAdmin):
 @admin.register(TattooImage)
 class TattooImageAdmin(admin.ModelAdmin):
     """
-    Standalone image admin.
-
-    Exists so other admins can autocomplete against image records (the gallery references
-    them for provenance), and so the artist can search images directly when reconciling
-    uploads.
+    Hidden from non-superusers. Images are attached by uploading on the Tattoo form or
+    through the inline; this standalone view is plumbing. Kept for superusers so image
+    records remain searchable when reconciling an upload.
     """
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
     list_display = ("thumbnail", "tattoo", "variant", "order", "is_primary", "caption")
     list_filter = ("variant", "is_primary")

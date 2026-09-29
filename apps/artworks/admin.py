@@ -11,7 +11,11 @@ from __future__ import annotations
 from django.contrib import admin
 from django.utils.html import format_html
 
-from apps.core.admin_mixins import PublishedAdminMixin, placeholder_column
+from apps.core.admin_mixins import (
+    PublishedAdminMixin,
+    SimpleImageUploadMixin,
+    placeholder_column,
+)
 
 from .models import Artwork, ArtworkCategory, ArtworkImage
 
@@ -31,7 +35,10 @@ class ArtworkCategoryAdmin(admin.ModelAdmin):
 
 class ArtworkImageInline(admin.TabularInline):
     model = ArtworkImage
-    extra = 1
+    # extra = 0: a fresh artwork form shows ONE upload box (the `upload_image` field below),
+    # not an empty inline row competing with it. The inline stays for attaching extra images
+    # to an artwork that already exists.
+    extra = 0
     autocomplete_fields = ("asset",)
     fields = ("order", "asset", "thumbnail", "caption", "is_primary")
     readonly_fields = ("thumbnail",)
@@ -48,7 +55,14 @@ class ArtworkImageInline(admin.TabularInline):
 
 
 @admin.register(Artwork)
-class ArtworkAdmin(PublishedAdminMixin, admin.ModelAdmin):
+class ArtworkAdmin(SimpleImageUploadMixin, PublishedAdminMixin, admin.ModelAdmin):
+    """Normal Django admin: fill the fields, drop in an image, save."""
+
+    image_rel_name = "images"
+    image_model = ArtworkImage
+    image_fk_name = "artwork"
+    image_upload_label = "Artwork image"
+
     list_display = (
         "thumb", "title", "category", "medium", "year",
         "availability", "placeholder_column", "is_featured", "status",
@@ -102,7 +116,26 @@ class ArtworkAdmin(PublishedAdminMixin, admin.ModelAdmin):
 
 @admin.register(ArtworkImage)
 class ArtworkImageAdmin(admin.ModelAdmin):
-    """Standalone image admin — see TattooImageAdmin for the rationale."""
+    """
+    Hidden from non-superusers. Images are attached by uploading on the Artwork form or
+    through the inline, so this standalone view is plumbing the artist should not have to
+    navigate. Kept for superusers to inspect or repair a link.
+    """
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
     list_display = ("thumbnail", "artwork", "order", "is_primary", "caption")
     list_filter = ("is_primary",)

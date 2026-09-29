@@ -66,7 +66,10 @@ class Product(PublishableModel, SEOMixin):
     )
     product_type = models.CharField(max_length=20, choices=Type.choices, default=Type.PRINT)
 
-    price = models.DecimalField(max_digits=9, decimal_places=2)
+    # nullable so "not priced yet" is expressible. A required DecimalField rejects an empty
+    # form input with "This field is required.", which blocked saving a product whose price
+    # is not decided -- there is no sensible non-null default for a price.
+    price = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
     currency = models.CharField(max_length=3, default="EUR")
 
     stock = models.PositiveIntegerField(

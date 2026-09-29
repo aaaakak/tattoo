@@ -3,7 +3,7 @@
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *
-from .base import env, env_bool, env_int, env_list
+from .base import env, env_bool, env_int, env_list, media_storage_config
 
 DEBUG = False
 
@@ -75,7 +75,8 @@ CACHES = {
 
 # --- Static files served by the reverse proxy, never by Django ---
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    # Supabase Storage when configured, filesystem otherwise -- see config/settings/storage.py.
+    "default": media_storage_config(),
     # WhiteNoise's storage subclasses ManifestStaticFilesStorage, so the content-hashed
     # filenames that {% static %} resolves through staticfiles.json are preserved exactly.
     # It adds gzip/brotli precompression on top, which is what gets served.

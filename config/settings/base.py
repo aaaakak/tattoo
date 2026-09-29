@@ -235,8 +235,14 @@ STATIC_VERSION = env_str("STATIC_VERSION", default="dev1")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = env_str("MEDIA_ROOT", default=str(BASE_DIR / "media"))
 
+# Media storage. Filesystem locally; Supabase Storage (S3-compatible) once the four
+# SUPABASE_S3_* variables are present. See config/settings/storage.py for why.
+from .storage import MEDIA_URL_VALUE, media_storage_config  # noqa: E402
+
+MEDIA_URL = MEDIA_URL_VALUE
+
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": media_storage_config(),
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
